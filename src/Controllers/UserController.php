@@ -10,6 +10,7 @@ use Core\Request;
 use Core\Route;
 use Core\View;
 use JetBrains\PhpStorm\NoReturn;
+use Psr\Container\ContainerExceptionInterface;
 
 
 class UserController extends Controller{
@@ -94,6 +95,39 @@ class UserController extends Controller{
 //        $id = $params['id'];
 //        updateUserInfo
 //        dd($_SESSION['user']['id']);
+    }
+
+    public function reset_password(Request $request)
+    {
+//        return require_once base_path('src/Controllers/mailer.php');
+
+        try{
+            App::bind(Mailer::class, function() {
+                return new Mailer();
+            });
+            $mailer = App::get(Mailer::class);
+            $content = [
+//                'address' => 'ivfad91@gmail.com',
+                'address' => $_SESSION['user'][ 'email'],
+//                'name' => $_SESSION['user']['email'] ?:'User',
+                'name' => 'User',
+                'subject' => 'Link to change your password from Cloud storage',
+                'body' => '<a href="#">Link to change your password</a>',
+                'altbody' => 'Here is a link to change your password',
+                ];
+            $mailer->send_email($content);
+//            App::bind(ConfigMailer::class, function() {
+//                return new ConfigMailer();
+//            });
+//            $config = App::get(ConfigMailer::class);
+//
+//            $mailer->create_mailer();
+//            $mailer->set_config($config);
+        } catch (ContainerExceptionInterface $e) {
+            echo 'Container exception: ' . $e->getMessage();
+        }
+
+
     }
 }
 

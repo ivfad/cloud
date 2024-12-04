@@ -42,6 +42,7 @@ class Route
     public function access($role):self
     {
         $this->middleware = $role;
+
 //        dd($this->middleware);
         return $this;
     }
