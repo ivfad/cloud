@@ -1,29 +1,24 @@
 <?php
 
-use Core\Database;
+declare(strict_types=1);
 
+use Core\Router;
+use Core\Request;
+use Core\Response;
 const BASE_PATH = __DIR__ . '/../';
 
-require_once __DIR__ . '/../' . '/vendor/autoload.php';
+session_start();
 
-$config = require base_path('config.php');
+require_once BASE_PATH . '/vendor/autoload.php';
+require_once base_path('bootstrap.php');
 
-$db = new Database($config['database']);
+$router = new Router();
 
+$request = Request::createFromGlobals();
 
-$result = $db->query("select * from user where id>2")->fetchAll(PDO::FETCH_ASSOC);
-
-//dd($result);
-
-
-
-require_once base_path('index.view.php');
-
-
-//var_dump($_SERVER['REQUEST_URI']);
-//var_dump($_SERVER['QUERY_STRING']);
-//$urlsList = [
-//
-//]
-//var_dump($_SERVER);
-
+$content = $router->route($request);
+//dd(13);
+$response = new Response($content);
+//dd($response);
+//$response->json()->send();
+$response->send();

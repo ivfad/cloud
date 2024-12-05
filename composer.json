@@ -9,7 +9,6 @@
             "Core\\": "Core/"
         },
         "files": [
-            "router.php",
             "functions.php"
         ]
     },
@@ -21,6 +20,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-      "ext-pdo": "*"
+      "ext-pdo": "*",
+        "psr/container": "^2.0",
+      "ext-ctype": "*"
     }
 }
