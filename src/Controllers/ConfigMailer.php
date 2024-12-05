@@ -9,11 +9,11 @@ class ConfigMailer
      */
     public function __construct(
         public string $host = 'smtp.mail.ru',
-        public string $username = 'ivfad91@mail.ru', //SMTP username
-        public string $password = '9bjTWGi1RHskHaZ7PsFT', //SMTP pass
+        public string $username = 'test@mail.ru', //SMTP username
+        public string $password = 'testpass', //SMTP pass
         public string $smtpSecure = PHPMailer::ENCRYPTION_STARTTLS, //encryption settings
         public int $port = 587,
-        public string $sendFromEmail = 'ivfad91@mail.ru',
+        public string $sendFromEmail = 'sender@mail.ru',
         public string $sendFromName = 'Cloud storage',
         public string $mailSubject = 'Link to change your password from Cloud storage')
     {

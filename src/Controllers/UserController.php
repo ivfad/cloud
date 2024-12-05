@@ -116,13 +116,7 @@ class UserController extends Controller{
                 'altbody' => 'Here is a link to change your password',
                 ];
             $mailer->send_email($content);
-//            App::bind(ConfigMailer::class, function() {
-//                return new ConfigMailer();
-//            });
-//            $config = App::get(ConfigMailer::class);
-//
-//            $mailer->create_mailer();
-//            $mailer->set_config($config);
+
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }

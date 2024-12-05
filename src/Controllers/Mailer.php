@@ -96,6 +96,7 @@ class Mailer
             echo "Сообщение не было отправлено. Ошибка: {$this->mailer->ErrorInfo}"; // Если возникнет ошибка при отправке, отобразим текст ошибки
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
+            
         }
         }
 }
