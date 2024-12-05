@@ -22,6 +22,7 @@
     "require": {
       "ext-pdo": "*",
         "psr/container": "^2.0",
-      "ext-ctype": "*"
+      "ext-ctype": "*",
+        "phpmailer/phpmailer": "^6.9"
     }
 }

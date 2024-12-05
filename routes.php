@@ -16,7 +16,7 @@ return [
     Route::get('/users/get/{id}', [UserController::class, 'get'])->access('user'),
 
 //    Route::get('/users/update', [UserController::class, 'update'])->access('user'), //test
-
+    Route::get('/reset_password', [UserController::class, 'reset_password'])->access('user'),
     Route::get('/users/update', [UserController::class, 'updateView'])->access('user'),
     Route::put('/users/update', [UserController::class, 'update'])->access('user'),
 //    Route::put('/users/update', [UserController::class, 'update']),
