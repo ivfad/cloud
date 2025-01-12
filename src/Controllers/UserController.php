@@ -90,11 +90,50 @@ class UserController extends Controller{
 
     public function update(Request $request)
     {
-//        dd($request);
-    dd($request->post());
-//        $id = $params['id'];
-//        updateUserInfo
-//        dd($_SESSION['user']['id']);
+        $db = App::get(Database::class);
+        $initialEmail = $_SESSION['user']['email'];
+        $user = $this->model->getUserByEmail($initialEmail);
+
+        if ($user) {
+
+        //dd(file_get_contents('php://input'));
+        $name = $request->post()['name'] ?? null;
+        $email = $request->post()['email'] ?? null;
+        $password = $request->post()['password'] ?? null;
+        $age = $request->post()['age'] ?? null;
+        $gender = $request->post()['gender'] ?? null;
+
+        if (empty($email) || empty($password)) {
+            exit();
+        }
+
+        if ($email != $initialEmail && $this->model->getUserByEmail($email)) {
+            exit();
+        }
+
+            $db->query('UPDATE `user` 
+                            SET 
+                                name = :name, 
+                                email = :email,
+                                password = :password,
+                                age = :age,
+                                gender = :gender 
+                        WHERE email = :initialEmail', [
+            ':initialEmail' => $initialEmail,
+            ':name' => $name,
+            ':email' => $email,
+            ':password' => password_hash($request->post()['password'], PASSWORD_BCRYPT),
+            ':age' => $age,
+            ':gender' => $gender
+            ]);
+
+        }
+
+            dd($user);
+
+//        header('location: /');
+//        exit();
+
     }
 
     public function reset_password(Request $request)
@@ -120,8 +159,38 @@ class UserController extends Controller{
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
+    }
 
+    public function jwt()
+    {
+        App::bind(JWT::class, function() {
+            return new JWT('A586E3272357538782F413F4428472B4B6250655367566B5970337336763979');
+        });
+        $jwt = App::get(JWT::class);
+        $token = $jwt->encode(['user_id' => 12]);
+        dd(json_encode($token));
 
+        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+
+// Create token payload as a JSON string
+        $payload = json_encode(['user_id' => 12]);
+
+// Encode Header to Base64Url String
+        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+
+// Encode Payload to Base64Url String
+        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+
+// Create Signature Hash
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, 'abC123!', true);
+
+// Encode Signature to Base64Url String
+        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+
+// Create JWT
+        $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+
+        echo $jwt;
     }
 }
 

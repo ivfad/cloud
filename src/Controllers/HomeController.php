@@ -16,6 +16,11 @@ class HomeController extends Controller
     {
 //        dd($this->view);
 //        dd($this->view);
+
+//        if (empty($_SESSION['csrf_token'])) {
+//            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+//        }
+//        dd($_SESSION);
 //        $this->view->render() = require_once base_path('index.view.php');
         $view = require_once base_path('index.view.php');
         exit();
