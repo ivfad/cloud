@@ -18,19 +18,26 @@ class Response
     {
     }
 
-    public function send(): void
+//    public function send(): void
+    public function send(): Response
     {
         header($this->headers);
         http_response_code($this->statusCode);
 //        echo $this->content;
-        dd($this->content);
+//        dd($this->content);
+        echo $this->content;
+//        dd($this->content);
         exit();
+//        return $this;
     }
 
     public function json(): Response
     {
+//        header("Access-Control-Allow-Origin: *");
+//        header("Content-Type: application/json; charset=UTF-8");
         $this->setHeaders('Content-Type: application/json, charset: utf-8');
         $this->setContent(json_encode($this->content));
+        $this->setStatusCode(202);
         return $this;
     }
 

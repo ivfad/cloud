@@ -29,6 +29,7 @@ class Request
      */
     public static function createFromGlobals(): static
     {
+//        dd($_POST);
         return new static($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER);
     }
 
@@ -70,11 +71,13 @@ class Request
 //        if($this->server['REQUEST_METHOD'] =='POST' && isset($_POST['_method'])) {
 //            $methodsList = ['PUT', 'PATCH', 'DELETE'];
 //            dd(in_array($_POST['_method'], $methodsList));
+
             if (isset($_POST['_method']) && in_array($_POST['_method'], $this->methodsList)) {
 //            if (in_array($_POST['_method'], $this->methodsList)) {
                 return $_POST['_method'];
             }
 //        }
+
         return $this->server['REQUEST_METHOD'] ?? 'GET';
     }
 }

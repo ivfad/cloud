@@ -49,18 +49,17 @@ class Router
         }
 
         $role = $currentRoute->getMiddleware() ?? false;
-
         if ($role) {
             Middleware::resolve($role);
         }
 
         $params = $this->getParams($request->uri(), $currentRoute);
         $action = $currentRoute->getAction();
-//        dd($request);
 
         if (is_array($action)) {
             $action = $this->useController($currentRoute->getAction());
         }
+
         return call_user_func($action, $request, $params);
     }
 
