@@ -43,7 +43,6 @@ class Route
     {
         $this->middleware = $role;
 
-//        dd($this->middleware);
         return $this;
     }
 

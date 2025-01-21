@@ -29,6 +29,7 @@ class UserController extends Controller{
 
     public function login(Request $request)
     {
+
         $email = $request->post()['email'];
         $password = $request->post()['password'];
 
@@ -50,6 +51,7 @@ class UserController extends Controller{
 
         session_regenerate_id(true);
 
+        return $user; //??
         header('location: /');
         exit();
     }
@@ -59,7 +61,7 @@ class UserController extends Controller{
         session_destroy();
         $params = session_get_cookie_params();
         setcookie('PHPSESSID', '', time() - 3600, $params['path'], $params['domain']);
-
+        return $params ;
         header('location: /');
         exit();
     }
@@ -126,11 +128,11 @@ class UserController extends Controller{
             ':age' => $age,
             ':gender' => $gender
             ]);
-
+//            dd($this->getUserByEmail($email));
         }
 
-            dd($user);
-
+//            dd($user);
+    return $this->model->getUserByEmail($email);
 //        header('location: /');
 //        exit();
 
@@ -145,9 +147,10 @@ class UserController extends Controller{
                 return new Mailer();
             });
             $mailer = App::get(Mailer::class);
+
             $content = [
-//                'address' => 'ivfad91@gmail.com',
-                'address' => $_SESSION['user'][ 'email'],
+                'address' => 'ENTER@EMAIL.com',
+//                'address' => $_SESSION['user'][ 'email'],
 //                'name' => $_SESSION['user']['email'] ?:'User',
                 'name' => 'User',
                 'subject' => 'Link to change your password from Cloud storage',
@@ -155,10 +158,12 @@ class UserController extends Controller{
                 'altbody' => 'Here is a link to change your password',
                 ];
             $mailer->send_email($content);
+            dd(223);
 
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
+//            dd(555);
     }
 
     public function jwt()
@@ -168,13 +173,19 @@ class UserController extends Controller{
         });
         $jwt = App::get(JWT::class);
         $token = $jwt->encode(['user_id' => 12]);
-        dd(json_encode($token));
+
+
 
         $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
 
 // Create token payload as a JSON string
         $payload = json_encode(['user_id' => 12]);
-
+        $payload = json_encode([
+            'sub' => "1234",
+            'name' => "1230",
+            'iat' => "1234",
+        ]);
+//        dd($payload);
 // Encode Header to Base64Url String
         $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
 
@@ -189,7 +200,7 @@ class UserController extends Controller{
 
 // Create JWT
         $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
-
+dd($jwt);
         echo $jwt;
     }
 }

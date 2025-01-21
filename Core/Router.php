@@ -44,6 +44,7 @@ class Router
     public function route(Request $request): mixed
     {
         $currentRoute = $this->findRoute($request->uri(), $request->method());
+
         if (!$currentRoute) {
             $this->abort(404);
         }
