@@ -86,6 +86,7 @@ class Mailer
             $this->mailer->isSMTP();
             $this->mailer->Host = $this->config->host;
             $this->mailer->SMTPAuth = true;
+            $this->mailer->SMTPDebug = 2;
             $this->mailer->Username = $this->config->username;
             $this->mailer->Password = $this->config->password;
             $this->mailer->SMTPSecure = $this->config->smtpSecure;

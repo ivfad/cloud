@@ -4,6 +4,8 @@ namespace Core;
 
 class Response
 {
+    private static int $status = 200;
+
     /**
      * Create a new HTTP response.
      * @param mixed $content
@@ -23,6 +25,7 @@ class Response
     {
         header($this->headers);
         http_response_code($this->statusCode);
+        http_response_code(self::$status);
 //        echo $this->content;
 //        dd($this->content);
         echo $this->content;
@@ -37,7 +40,7 @@ class Response
 //        header("Content-Type: application/json; charset=UTF-8");
         $this->setHeaders('Content-Type: application/json, charset: utf-8');
         $this->setContent(json_encode($this->content));
-        $this->setStatusCode(202);
+//        $this->setStatusCode(202);
         return $this;
     }
 
@@ -57,5 +60,10 @@ class Response
     public function setStatusCode($statusCode = 200): void
     {
         $this->statusCode = $statusCode;
+    }
+
+    public static function status($code)
+    {
+        self::$status = $code;
     }
 }
