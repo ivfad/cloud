@@ -9,6 +9,7 @@ use Core\Database;
 use Core\Request;
 use Core\Route;
 use Core\View;
+use DateTimeImmutable;
 use JetBrains\PhpStorm\NoReturn;
 use Psr\Container\ContainerExceptionInterface;
 
@@ -42,7 +43,7 @@ class UserController extends Controller{
         if(!password_verify($password, $user['password'])) {
             return 'Incorrect password';
         }
-//        dd(session_status());
+
         $_SESSION['user'] = [
             'id' => $user['id'],
             'email' => $email,
@@ -168,40 +169,32 @@ class UserController extends Controller{
 
     public function jwt()
     {
-        App::bind(JWT::class, function() {
-            return new JWT('A586E3272357538782F413F4428472B4B6250655367566B5970337336763979');
-        });
-        $jwt = App::get(JWT::class);
-        $token = $jwt->encode(['user_id' => 12]);
+        require_once base_path('JWTCode.php');
+
+        $issuedAt   = new DateTimeImmutable();
+
+// Create token payload
+        $payload = [
+            'iss' => 'cloudstorage',
+            'sub' => $_SESSION['user'][ 'id'],
+            'admin' => $_SESSION['user'][ 'admin'],
+            'iat' => $issuedAt->getTimestamp(),
+            'exp' => $issuedAt->modify('+15 minutes')->getTimestamp()
+        ];
 
 
+        $accessToken = JWT::createAccessToken($_SESSION['user'][ 'id'], $_SESSION['user'][ 'admin']);
 
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+        $refreshToken = JWT::createRefreshToken($_SESSION['user'][ 'id'], $_SESSION['user'][ 'admin']);
+//        $ans = [$accessToken, $refreshToken];
+//        dd($ans);
+//        dd(JWT::checkTokenExpired($refreshToken));
+        if(JWT::verifyToken($accessToken, 'access') == false) {
+            dd(JWT::verifyToken($accessToken, 'refresh'));
+        } else {
+            dd('Access JWT if ok');
+        }
 
-// Create token payload as a JSON string
-        $payload = json_encode(['user_id' => 12]);
-        $payload = json_encode([
-            'sub' => "1234",
-            'name' => "1230",
-            'iat' => "1234",
-        ]);
-//        dd($payload);
-// Encode Header to Base64Url String
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-
-// Encode Payload to Base64Url String
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
-
-// Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, 'abC123!', true);
-
-// Encode Signature to Base64Url String
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
-
-// Create JWT
-        $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
-dd($jwt);
-        echo $jwt;
     }
 }
 

@@ -3,4 +3,5 @@
 /vendor/
 /src/Controllers/ConfigMailer.php
 Config.php
+JWTCode.php
 
