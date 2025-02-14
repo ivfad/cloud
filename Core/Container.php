@@ -43,7 +43,7 @@ class Container implements ContainerInterface
      * example#1.2: ClassName::class
      * @param string|callable $resolver
      * example#2.1 (string): ClassName::class
-     * ClassName::class should implement InterfaceName:class from example #2.1
+     * ClassName::class should implement InterfaceName:class from example #1.1
      * example#2.2 (callable): function () {...}
      * @return $this
      */

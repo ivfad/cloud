@@ -11,19 +11,25 @@ use Core\Route;
  */
 
 return [
+    Route::get('/', [HomeController::class, 'index']),
 
     Route::get('/users/list', [UserController::class, 'list'])->access('user'),
     Route::get('/users/get/{id}', [UserController::class, 'get'])->access('user'),
     Route::put('/users/update', [UserController::class, 'update'])->access('user'),
+    Route::get('/login', [UserController::class, 'loginView'])->access('guest'),
+    Route::post('/login', [UserController::class, 'login'])->access('guest'),
+    Route::get('/logout', [UserController::class, 'logout'])->access('user'),
 
+    Route::get('/reset_password', [UserController::class, 'reset_password'])->access('user'),
+
+    Route::get('/register', [App\Controllers\RegistrationController::class, 'index'])->access('guest'),
+    Route::post('/register', [App\Controllers\RegistrationController::class, 'store'])->access('guest'),
 
     Route::get('/jwt', [UserController::class, 'jwt'])->access('user'),
 
-    Route::get('/login', [UserController::class, 'loginView'])->access('guest'),
+//    Route::get('/login', [UserController::class, 'loginView'])->access('guest'),
 //    Route::post('/login', [UserController::class, 'login']),
-    Route::post('/login', [UserController::class, 'login'])->access('guest'),
-    Route::get('/logout', [UserController::class, 'logout'])->access('user'),
-    Route::get('/reset_password', [UserController::class, 'reset_password'])->access('user'),
+//    Route::get('/logout', [UserController::class, 'logout']),
 
     Route::get('/admin/users/list', [AdminController::class, 'list'])->access('admin'),
     Route::get('/admin/users/get/{id}', [AdminController::class, 'get'])->access('admin'),
@@ -51,19 +57,18 @@ return [
 
 //    Route::get('/logout', [UserController::class, 'logout'])->access('admin'),
 
-    Route::get('/test3', [TestController::class, 'index']),
-    Route::get('/files/share/{id}/{user}', [UserController::class, 'test']),
-    Route::get('/register', [App\Controllers\RegistrationController::class, 'index'])->access('guest'),
-    Route::post('/register', [App\Controllers\RegistrationController::class, 'store']),
+//    Route::get('/test3', [TestController::class, 'index']),
+//    Route::get('/files/share/{id}/{user}', [UserController::class, 'test']),
+
 
 
 //    Route::get('/', [\App\Controllers\HomeController::class, 'index'])::access(),
 //    Route::access(Route::get('/', [\App\Controllers\HomeController::class, 'index'])),
-    Route::get('/', [HomeController::class, 'index']),
-    Route::get('/test2', [TestController::class, 'index'])->access('user'),
-    Route::put('/test2', [TestController::class, 'index']),
-//    Route::post('/test3', \App\Controllers\TestController::class),
-    Route::get('/test', function() {
-        echo '123';
-    }),
+
+//    Route::get('/test2', [TestController::class, 'index'])->access('user'),
+//    Route::put('/test2', [TestController::class, 'index']),
+////    Route::post('/test3', \App\Controllers\TestController::class),
+//    Route::get('/test', function() {
+//        echo '123';
+//    }),
 ];

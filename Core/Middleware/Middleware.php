@@ -10,11 +10,15 @@ class Middleware
         'admin' => Admin::class,
     ];
 
+    /**
+     * @throws \Exception
+     */
     public static function resolve($role)
     {
         if(!$role) {
             return;
         }
+
         $middleware = static::ROLES[$role] ?? false;
 
         if(!$middleware) {

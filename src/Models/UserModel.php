@@ -5,16 +5,24 @@ namespace App\Models;
 use Core\App;
 use Core\Database;
 use Core\Model;
+use Core\Response;
 
 class UserModel extends Model
 {
     private Database $db;
 
+    /**
+     * @throws \Core\Exceptions\ContainerException
+     * @throws \Core\Exceptions\ContainerNotFoundException
+     */
     public function __construct()
     {
         $this->db = App::getContainer()->get(Database::class);
     }
 
+    /**
+     * @return bool|array
+     */
     public function getUsersList(): bool|array
     {
         $list = $this->db->query('Select `name`, `age`, `gender` from `user`')->get();
@@ -39,15 +47,49 @@ class UserModel extends Model
         return $user;
     }
 
-    public function updateUserInfo($name, $age, $gender, $email)
+    /**
+     * @param $name
+     * @param $email
+     * @param $password
+     * @param $age
+     * @param $gender
+     * @param $initialEmail
+     * @return mixed
+     */
+
+    public function updateUserInfo($name, $email, $password, $age, $gender, $initialEmail): mixed
     {
-        $user = $this->db->query('Update `user` SET `name` = :name, `age` = :age, `gender` = :gender
-            WHERE `email` = :email', [
-            ':name' => $name,
-            ':age' => $age,
-            ':gender' => $gender,
-            ':email' => $email
+        $user = $this->getUserByEmail($initialEmail);
+
+        if (!$user) {
+            Response::error(400, 'No such user, please re-login');
+        }
+
+        if (empty($email) || empty($password)) {
+            Response::error(400, 'Main fields are not filled in');
+        }
+
+        if ($email != $initialEmail && $this->getUserByEmail($email)) {
+            Response::error(422, 'Such email is already in use');
+        }
+
+        $this->db->query(query: 'UPDATE `user` 
+            SET 
+                name = :name, 
+                email = :email,
+                password = :password,
+                age = :age,
+                gender = :gender 
+            WHERE email = :initialEmail',
+            params: [
+                ':initialEmail' => $initialEmail,
+                ':name' => $name,
+                ':email' => $email,
+                ':password' => password_hash($password, PASSWORD_BCRYPT),
+                ':age' => $age,
+                ':gender' => $gender
         ]);
-//        ])->find();
+
+        return $this->getUserByEmail($email);
     }
 }

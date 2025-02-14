@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -8,7 +8,7 @@
     <title>Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="h-full">
 <!--
   This example requires updating your template:
 

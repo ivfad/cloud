@@ -17,15 +17,6 @@ $router = new Router();
 $request = Request::createFromGlobals();
 $content = $router->route($request);
 
-$response = new Response($content);
-//dd(2);
-//dd($response);
-//dd($content);
-//$response->json()->send();
-//$response->send();
-//dd(122);
-
-$response->json();
-$response->send();
-
+Response::setContent($content);
+Response::send();
 

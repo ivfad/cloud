@@ -1,7 +1,6 @@
 <?php
 namespace App\Controllers;
 use Core\App;
-//use Core\Exceptions\ContainerExceptionInterface;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -16,7 +15,11 @@ class Mailer
     {
     }
 
-    public function send_email($content)
+    /**
+     * @param $content
+     * @return void
+     */
+    public function send_email($content): void
     {
         try {
             if(!isset($this->mailer)) {
@@ -39,33 +42,33 @@ class Mailer
      * @throws \Core\Exceptions\ContainerException
      * @throws \Core\Exceptions\ContainerNotFoundException
      */
-    public function create_mailer()
+    private function create_mailer(): void
     {
         try{
             App::bind(PHPMailer::class, function() {
                 return new PHPMailer();
             });
             $this->mailer = App::get(PHPMailer::class);
-            return $this->mailer;
+            return;
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
     }
 
-    public function add_config()
+    private function add_config(): void
     {
         try {
             App::bind(ConfigMailer::class, function () {
                 return new ConfigMailer();
             });
             $this->config = App::get(ConfigMailer::class);
-            return $this->mailer;
+            return;
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
     }
 
-    public function set_content($content)
+    public function set_content($content): void
     {
         try {
             $this->mailer->addAddress($content['address'], $content['name']);
@@ -74,13 +77,13 @@ class Mailer
             $this->mailer->Body = $content['body'];
             $this->mailer->AltBody = $content['altbody'];
         } catch (Exception $e) {
-            echo "Сообщение не было отправлено. Ошибка: {$this->mailer->ErrorInfo}";
+            echo "Problems with mail message content. Error: {$this->mailer->ErrorInfo}";
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
     }
 
-    public function set_config()
+    public function set_config(): void
     {
         try {
             $this->mailer->isSMTP();
@@ -92,12 +95,11 @@ class Mailer
             $this->mailer->SMTPSecure = $this->config->smtpSecure;
             $this->mailer->Port = $this->config->port;
             $this->mailer->setFrom($this->config->sendFromEmail, $this->config->sendFromName);
-            echo 'Сообщение успешно отправлено'; // Выведем текст об успешной отправке
         } catch (Exception $e) {
-            echo "Сообщение не было отправлено. Ошибка: {$this->mailer->ErrorInfo}"; // Если возникнет ошибка при отправке, отобразим текст ошибки
+            echo "Mailer config was not set. Error: {$this->mailer->ErrorInfo}";
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
             
         }
-        }
+    }
 }

@@ -14,15 +14,15 @@ class HomeController extends Controller
 
     public function index()
     {
-//        dd($this->view);
-//        dd($this->view);
 
-//        if (empty($_SESSION['csrf_token'])) {
-//            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-//        }
-//        dd($_SESSION);
 //        $this->view->render() = require_once base_path('index.view.php');
-        $view = require_once base_path('index.view.php');
-        exit();
+//        dd($this->view);
+//        return 52;
+        $this->view->setTemplate('index.view.php');
+        return $this->view->render();
+
+//        dd($this->view->render());
+//        $view = require_once base_path('index.view.php');
+//        exit();
     }
 }
