@@ -11,8 +11,10 @@ use Core\Route;
 use Core\View;
 use DateTimeImmutable;
 use JetBrains\PhpStorm\NoReturn;
+use PDOException;
 use Psr\Container\ContainerExceptionInterface;
-
+use App\Controllers\Mailer;
+use Core\Response;
 
 class UserController extends Controller{
 
@@ -23,148 +25,129 @@ class UserController extends Controller{
         $this->view = new View();
     }
 
+    /**
+     * @return array
+     */
     public function list():array
     {
         return $this->model->getUsersList();
     }
 
-    public function login(Request $request)
+    /**
+     * @param Request $request
+     * @return mixed|string
+     */
+    public function login(Request $request): mixed
     {
-
         $email = $request->post()['email'];
         $password = $request->post()['password'];
 
         $user = $this->model->getUserByEmail($email);
 
-        if(!$user) {
-            return 'There is no such user';
+        if(!$user || !password_verify($password, $user['password'])) {
+            Response::status(401);
+            return 'There is no such user or password is incorrect';
         }
 
-        if(!password_verify($password, $user['password'])) {
-            return 'Incorrect password';
-        }
-
-        $_SESSION['user'] = [
-            'id' => $user['id'],
-            'email' => $email,
-            'admin' => $user['admin'],
-        ];
-
+        $this->setSessionParams($user);
         session_regenerate_id(true);
 
-        return $user; //??
-        header('location: /');
-        exit();
+        Response::redirect(303, 'location: /');
+
+        return $user;
     }
 
-    #[NoReturn] public function logout()
+    public function loginView(Request $request): mixed
     {
+        $this->view->setTemplate('login.view.php');
+        return $this->view->render();
+    }
+
+    /**
+     * @param array $user
+     * @return void
+     */
+    private function setSessionParams (array $user): void
+    {
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'admin' => $user['admin'],
+        ];
+    }
+
+    /**
+     * @return void
+     */
+    #[NoReturn] public function logout(): void
+    {
+        session_unset();
         session_destroy();
         $params = session_get_cookie_params();
-        setcookie('PHPSESSID', '', time() - 3600, $params['path'], $params['domain']);
-        return $params ;
-        header('location: /');
-        exit();
+        setcookie(name:session_name(), value:'', expires_or_options: time() - 3600, path:$params['path'], domain:$params['domain'], httponly: true);
+        Response::status(204);
     }
 
-    public function loginView(Request $request)
-    {
-        return require_once base_path('login.view.php');
-    }
-
-    public function get(Request $request, $params)
+    /**
+     * @param Request $request
+     * @param $params
+     * @return mixed
+     */
+    public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
 
         return $this->model->getUserInfoById($id);
     }
 
-    public function test(Request $request, $params)
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function update(Request $request): mixed
     {
-        $id = $params['id'];
-        $user = $params['user'];
-        echo 'id = ' . $id . ' user =' . $user . PHP_EOL;
-    }
-
-    public function updateView(Request $request)
-    {
-        return require_once base_path('update.view.php');
-    }
-
-    public function update(Request $request)
-    {
-        $db = App::get(Database::class);
         $initialEmail = $_SESSION['user']['email'];
-        $user = $this->model->getUserByEmail($initialEmail);
-
-        if ($user) {
-
-        //dd(file_get_contents('php://input'));
-        $name = $request->post()['name'] ?? null;
         $email = $request->post()['email'] ?? null;
         $password = $request->post()['password'] ?? null;
+        $name = $request->post()['name'] ?? null;
         $age = $request->post()['age'] ?? null;
         $gender = $request->post()['gender'] ?? null;
 
-        if (empty($email) || empty($password)) {
-            exit();
-        }
+        $user = $this->model->updateUserInfo($name, $email, $password, $age, $gender, $initialEmail);
 
-        if ($email != $initialEmail && $this->model->getUserByEmail($email)) {
-            exit();
-        }
+        $this->setSessionParams($user);
 
-            $db->query('UPDATE `user` 
-                            SET 
-                                name = :name, 
-                                email = :email,
-                                password = :password,
-                                age = :age,
-                                gender = :gender 
-                        WHERE email = :initialEmail', [
-            ':initialEmail' => $initialEmail,
-            ':name' => $name,
-            ':email' => $email,
-            ':password' => password_hash($request->post()['password'], PASSWORD_BCRYPT),
-            ':age' => $age,
-            ':gender' => $gender
-            ]);
-//            dd($this->getUserByEmail($email));
-        }
-
-//            dd($user);
-    return $this->model->getUserByEmail($email);
-//        header('location: /');
-//        exit();
-
+        return $user;
     }
 
-    public function reset_password(Request $request)
+    /**
+     * @param Request $request
+     * @return void
+     */
+    public function reset_password(Request $request): void
     {
-//        return require_once base_path('src/Controllers/mailer.php');
-
         try{
             App::bind(Mailer::class, function() {
                 return new Mailer();
             });
+
             $mailer = App::get(Mailer::class);
 
-            $content = [
-                'address' => 'ENTER@EMAIL.com',
-//                'address' => $_SESSION['user'][ 'email'],
-//                'name' => $_SESSION['user']['email'] ?:'User',
-                'name' => 'User',
-                'subject' => 'Link to change your password from Cloud storage',
-                'body' => '<a href="#">Link to change your password</a>',
-                'altbody' => 'Here is a link to change your password',
-                ];
-            $mailer->send_email($content);
-            dd(223);
+            $name = isset($_SESSION['user']['name']) ?:'User';
 
+            $content = [
+                'address' => $_SESSION['user'][ 'email'],
+                'name' => $name,
+                'subject' => 'Link to change your password from Cloud storage',
+                'body' => "Hi, " . $name . ", here is <a href=\"#\"> a link to change your password</a>",
+                'altbody' => 'Here is a link to change your password',
+            ];
+
+            $mailer->send_email($content);
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
-//            dd(555);
     }
 
     public function jwt()
@@ -181,7 +164,6 @@ class UserController extends Controller{
             'iat' => $issuedAt->getTimestamp(),
             'exp' => $issuedAt->modify('+15 minutes')->getTimestamp()
         ];
-
 
         $accessToken = JWT::createAccessToken($_SESSION['user'][ 'id'], $_SESSION['user'][ 'admin']);
 

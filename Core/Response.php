@@ -2,68 +2,100 @@
 
 namespace Core;
 
+use JetBrains\PhpStorm\NoReturn;
+
 class Response
 {
     private static int $status = 200;
+    private static string $headers = 'Content-Type: text/html, charset: utf-8';
+    private static mixed $content = '';
+
+    public function __construct()
+    {
+    }
 
     /**
-     * Create a new HTTP response.
-     * @param mixed $content
-     * @param int $statusCode
-     * @param string $headers
+     * Send a new HTTP response
+     * @return Response
      */
-    public function __construct(
-        private mixed $content = '',
-        private int $statusCode = 200,
-        private string $headers = '',
-    )
+    #[NoReturn] public static function send(): Response
     {
-    }
-
-//    public function send(): void
-    public function send(): Response
-    {
-        header($this->headers);
-        http_response_code($this->statusCode);
+        header(self::$headers);
         http_response_code(self::$status);
-//        echo $this->content;
-//        dd($this->content);
-        echo $this->content;
-//        dd($this->content);
+        echo self::$content;
         exit();
-//        return $this;
     }
 
-    public function json(): Response
+    /**
+     * Json-encodes content and sets appropriate header
+     * @param $content
+     * @return void
+     */
+    private static function json($content): void
     {
-//        header("Access-Control-Allow-Origin: *");
-//        header("Content-Type: application/json; charset=UTF-8");
-        $this->setHeaders('Content-Type: application/json, charset: utf-8');
-        $this->setContent(json_encode($this->content));
-//        $this->setStatusCode(202);
-        return $this;
+        self::setHeaders('Content-Type: application/json, charset: utf-8');
+        self::$content = json_encode($content);
     }
 
-    public function setContent($content): void
+    /**
+     * Processes data depending on its content type.
+     * Empty content (e.g. redirect) is not processed additionally.
+     * @param $content
+     * @return void
+     */
+    public static function setContent($content): void
     {
         if($content instanceof Renderable) {
-            $content = $content->render();
+            self::$content = $content->getHtml();
+        } elseif(isset($content)) {
+            self::json($content);
         }
-        $this->content = $content;
     }
 
-    public function setHeaders($headers = []): void
-    {
-        $this->headers = $headers;
-    }
-
-    public function setStatusCode($statusCode = 200): void
-    {
-        $this->statusCode = $statusCode;
-    }
-
-    public static function status($code)
+    /**
+     * Setter of the http-status code
+     * @param $code
+     * @return void
+     */
+    public static function status($code): void
     {
         self::$status = $code;
+    }
+
+    /**
+     * Setter of the http-header
+     * @param $header
+     * @return void
+     */
+    public static function setHeaders($header): void
+    {
+        self::$headers = $header;
+    }
+
+    /**
+     * Sets http-status codes, sets content and sends response. Used to send errors.
+     * @param int $status
+     * @param string $content
+     * @return void
+     */
+    #[NoReturn] public static function error(int $status = 404, string $content = ''): void
+    {
+        self::status($status);
+        self::setContent($content);
+        self::send();
+    }
+
+    /**
+     * * Sets http-status codes, sets content, sets headers and sends response. Used for redirects.
+     * @param int $status
+     * @param string $location
+     * @param string $content
+     * @return void
+     */
+    #[NoReturn] public static function redirect(int $status = 302, string $location = 'location: /'):void
+    {
+        self::status($status);
+        self::setHeaders($location);
+        self::send();
     }
 }

@@ -37,19 +37,18 @@ class Router
     protected function abort($code = 404)
     {
         http_response_code($code);
-//        dd($_SERVER);
         exit('404 Not found');
     }
 
     public function route(Request $request): mixed
     {
         $currentRoute = $this->findRoute($request->uri(), $request->method());
-
         if (!$currentRoute) {
             $this->abort(404);
         }
 
         $role = $currentRoute->getMiddleware() ?? false;
+
         if ($role) {
             Middleware::resolve($role);
         }
@@ -60,7 +59,7 @@ class Router
         if (is_array($action)) {
             $action = $this->useController($currentRoute->getAction());
         }
-
+//        dd($action);
         return call_user_func($action, $request, $params);
     }
 

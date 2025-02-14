@@ -1,5 +1,7 @@
 <?php
 
+//declare(strict_types=1);
+
 namespace Core;
 
 class Request
@@ -24,12 +26,11 @@ class Request
     }
 
     /**
-     * Create a request based on the current PHP global variables
+     * Create a request, based on the current PHP global variables
      * @return static
      */
     public static function createFromGlobals(): static
     {
-//        dd($_POST);
         return new static($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER);
     }
 
@@ -67,16 +68,9 @@ class Request
      */
     public function method(): string
     {
-
-//        if($this->server['REQUEST_METHOD'] =='POST' && isset($_POST['_method'])) {
-//            $methodsList = ['PUT', 'PATCH', 'DELETE'];
-//            dd(in_array($_POST['_method'], $methodsList));
-
-            if (isset($_POST['_method']) && in_array($_POST['_method'], $this->methodsList)) {
-//            if (in_array($_POST['_method'], $this->methodsList)) {
-                return $_POST['_method'];
-            }
-//        }
+        if (isset($_POST['_method']) && in_array($_POST['_method'], $this->methodsList)) {
+            return $_POST['_method'];
+        }
 
         return $this->server['REQUEST_METHOD'] ?? 'GET';
     }
