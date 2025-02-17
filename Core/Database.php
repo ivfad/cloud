@@ -62,18 +62,18 @@ class Database
         return $this->statement->fetch(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * @return mixed
-     */
-    public function findOrFail(): mixed
-    {
-        $result = $this->statement->fetch();
-
-//        !$result ? : abort();
-        if(! $result) {
-            abort();
-        }
-
-        return $result;
-    }
+//    /**
+//     * @return mixed
+//     */
+//    public function findOrFail(): mixed
+//    {
+//        $result = $this->statement->fetch();
+//
+////        !$result ? : abort();
+//        if(! $result) {
+//            abort();
+//        }
+//
+//        return $result;
+//    }
 }

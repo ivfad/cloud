@@ -52,7 +52,6 @@ class Router
         if ($role) {
             Middleware::resolve($role);
         }
-
         $params = $this->getParams($request->uri(), $currentRoute);
         $action = $currentRoute->getAction();
 

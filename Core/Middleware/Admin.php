@@ -2,13 +2,18 @@
 
 namespace Core\Middleware;
 
-class Admin
+use Core\Response;
+use Core\Role;
+
+class Admin implements Role
 {
+    /**
+     * @return void
+     */
     public function handle(): void
     {
         if(!$_SESSION || !$_SESSION['user']['admin']) {
-            header('location: /');
-            die();
+            Response::error(403, 'No permission to view the content');
         }
     }
 }

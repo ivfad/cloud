@@ -2,13 +2,18 @@
 
 namespace Core\Middleware;
 
-class Guest
+use Core\Response;
+use Core\Role;
+
+class Guest implements Role
 {
-    public function handle()
+    /**
+     * @return void
+     */
+    public function handle(): void
     {
         if($_SESSION['user'] ?? false) {
-            header('location: /');
-            die();
+            Response::redirect(303, 'location: /');
         }
     }
 }

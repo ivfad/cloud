@@ -5,15 +5,16 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use Core\App;
 use Core\Controller;
-use Core\Database;
+//use Core\Database;
+use Core\Renderable;
 use Core\Request;
-use Core\Route;
+//use Core\Route;
 use Core\View;
 use DateTimeImmutable;
 use JetBrains\PhpStorm\NoReturn;
-use PDOException;
+//use PDOException;
 use Psr\Container\ContainerExceptionInterface;
-use App\Controllers\Mailer;
+//use App\Controllers\Mailer;
 use Core\Response;
 
 class UserController extends Controller{
@@ -30,14 +31,20 @@ class UserController extends Controller{
      */
     public function list():array
     {
-        return $this->model->getUsersList();
+        $users = $this->model->getUsersList();
+
+        if (empty($users)){
+            Response::error(404, 'No appropriate data found in database');
+        }
+
+        return $users;
     }
 
     /**
      * @param Request $request
-     * @return mixed|string
+     * @return string
      */
-    public function login(Request $request): mixed
+    public function login(Request $request): string
     {
         $email = $request->post()['email'];
         $password = $request->post()['password'];
@@ -53,13 +60,16 @@ class UserController extends Controller{
         session_regenerate_id(true);
 
         Response::redirect(303, 'location: /');
-
-        return $user;
     }
 
-    public function loginView(Request $request): mixed
+    /**
+     * @param Request $request
+     * @return Renderable
+     */
+    public function loginView(Request $request): Renderable
     {
         $this->view->setTemplate('login.view.php');
+
         return $this->view->render();
     }
 
@@ -97,8 +107,13 @@ class UserController extends Controller{
     public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
+        $info = $this->model->getUserInfoById($id);
 
-        return $this->model->getUserInfoById($id);
+        if (!$info) {
+            Response::error('404', 'No appropriate data found in database');
+        }
+
+        return $info;
     }
 
     /**
@@ -114,11 +129,32 @@ class UserController extends Controller{
         $age = $request->post()['age'] ?? null;
         $gender = $request->post()['gender'] ?? null;
 
+        if (!$this->model->getUserByEmail($initialEmail)) {
+            Response::error(400, 'No such user, please re-login');
+        }
+
+        if (empty($email) || empty($password)) {
+            Response::error(400, 'Main fields are not filled in');
+        }
+
+        if ($email != $initialEmail && $this->model->getUserByEmail($email)) {
+            Response::error(422, 'Such email is already in use');
+        }
+
         $user = $this->model->updateUserInfo($name, $email, $password, $age, $gender, $initialEmail);
 
         $this->setSessionParams($user);
 
         return $user;
+    }
+
+    /**
+     * @return Renderable
+     */
+    public function updateView(): Renderable
+    {
+        $this->view->setTemplate('update.view.php');
+        return $this->view->render();
     }
 
     /**

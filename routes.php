@@ -15,6 +15,7 @@ return [
 
     Route::get('/users/list', [UserController::class, 'list'])->access('user'),
     Route::get('/users/get/{id}', [UserController::class, 'get'])->access('user'),
+    Route::get('/users/update', [UserController::class, 'updateView'])->access('user'),
     Route::put('/users/update', [UserController::class, 'update'])->access('user'),
     Route::get('/login', [UserController::class, 'loginView'])->access('guest'),
     Route::post('/login', [UserController::class, 'login'])->access('guest'),

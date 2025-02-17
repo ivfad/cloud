@@ -73,7 +73,7 @@ class Response
     }
 
     /**
-     * Sets http-status codes, sets content and sends response. Used to send errors.
+     * Sets http-status codes, sets content and sends response. Used for errors.
      * @param int $status
      * @param string $content
      * @return void
@@ -89,7 +89,6 @@ class Response
      * * Sets http-status codes, sets content, sets headers and sends response. Used for redirects.
      * @param int $status
      * @param string $location
-     * @param string $content
      * @return void
      */
     #[NoReturn] public static function redirect(int $status = 302, string $location = 'location: /'):void
