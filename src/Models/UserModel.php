@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Core\App;
 use Core\Database;
+use Core\Exceptions\ContainerException;
+use Core\Exceptions\ContainerNotFoundException;
 use Core\Model;
 use Core\Response;
 
@@ -12,12 +14,13 @@ class UserModel extends Model
     private Database $db;
 
     /**
-     * @throws \Core\Exceptions\ContainerException
-     * @throws \Core\Exceptions\ContainerNotFoundException
+     * @throws ContainerException
+     * @throws ContainerNotFoundException
      */
     public function __construct()
     {
-        $this->db = App::getContainer()->get(Database::class);
+//        $this->db = App::getContainer()->get(Database::class);
+        $this->db = App::get(Database::class);
     }
 
     /**
@@ -26,9 +29,14 @@ class UserModel extends Model
     public function getUsersList(): bool|array
     {
         $list = $this->db->query('Select `name`, `age`, `gender` from `user`')->get();
+
         return $list;
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     */
     public function getUserInfoById($id)
     {
         $info = $this->db->query('Select `name`, `age`, `gender` from `user` WHERE `id` = :id', [
@@ -38,7 +46,11 @@ class UserModel extends Model
         return $info;
     }
 
-    public function getUserByEmail($email)
+    /**
+     * @param $email
+     * @return mixed
+     */
+    public function getUserByEmail($email): mixed
     {
         $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
             ':email' => $email,
@@ -59,20 +71,6 @@ class UserModel extends Model
 
     public function updateUserInfo($name, $email, $password, $age, $gender, $initialEmail): mixed
     {
-        $user = $this->getUserByEmail($initialEmail);
-
-        if (!$user) {
-            Response::error(400, 'No such user, please re-login');
-        }
-
-        if (empty($email) || empty($password)) {
-            Response::error(400, 'Main fields are not filled in');
-        }
-
-        if ($email != $initialEmail && $this->getUserByEmail($email)) {
-            Response::error(422, 'Such email is already in use');
-        }
-
         $this->db->query(query: 'UPDATE `user` 
             SET 
                 name = :name, 

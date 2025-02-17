@@ -19,4 +19,3 @@ $content = $router->route($request);
 
 Response::setContent($content);
 Response::send();
-

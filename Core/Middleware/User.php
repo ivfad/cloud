@@ -2,13 +2,18 @@
 
 namespace Core\Middleware;
 
-class User
+use Core\Response;
+use Core\Role;
+
+class User implements Role
 {
+    /**
+     * @return void
+     */
     public function handle(): void
     {
         if(!$_SESSION || !$_SESSION['user']) {
-            header('location: /');
-            die();
+            Response::error(401, 'Authorization needed to view the content');
         }
     }
 }

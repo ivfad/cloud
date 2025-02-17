@@ -5,13 +5,16 @@ namespace App\Controllers;
 use App\Models\AdminModel;
 use Core\App;
 use Core\Controller;
-use Core\Database;
+//use Core\Database;
+//use Core\Exceptions\ContainerException;
+//use Core\Exceptions\ContainerNotFoundException;
+//use Core\Middleware\User;
 use Core\Request;
 use Core\Response;
-use Core\Route;
+//use Core\Route;
 use Core\View;
-use JetBrains\PhpStorm\NoReturn;
-use Psr\Container\ContainerExceptionInterface;
+//use JetBrains\PhpStorm\NoReturn;
+//use Psr\Container\ContainerExceptionInterface;
 
 
 class AdminController extends Controller{
@@ -23,31 +26,66 @@ class AdminController extends Controller{
         $this->view = new View();
     }
 
-    public function list():array
+    /**
+     * @return array
+     */
+    public function list(): array
     {
-        return $this->model->getUsersList();
+        $users = $this->model->getUsersList();
+
+        if (empty($users)){
+            Response::error(404, 'No appropriate data found in database');
+        }
+
+        return $users;
     }
 
-    public function get(Request $request, $params)
+    /**
+     * @param Request $request
+     * @param $params
+     * @return mixed
+     */
+    public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
+        $info = $this->model->getUserInfoById($id);
 
-        return $this->model->getUserInfoById($id);
+        if (!$info) {
+            Response::error(404, 'No appropriate data found in database');
+        }
+
+        return $info;
     }
 
+    /**
+     * @throws \Core\Exceptions\ContainerException
+     * @throws \Core\Exceptions\ContainerNotFoundException
+     */
     public function delete(Request $request, $params):void
     {
         $id = $params['id'];
 
-        if ($this->model->deleteUserById($id)) {
-            Response::status(204);
+        if (!$this->model->getUserInfoById($id)) {
+            Response::error(404, 'No appropriate data found in database');
         }
-        return;
+
+        $this->model->deleteUserById($id);
+        Response::status(204);
+
+        if ((int) $id == $_SESSION['user']['id']) {
+            App::get(UserController::class)->logout();
+        }
     }
 
-    public function update(Request $request, $params)
+    /**
+     * @param Request $request
+     * @param $params
+     * @return void
+     */
+    public function update(Request $request, $params): void
     {
         $id = $params['id'];
+
         $updateInfo = [
             'name' => $request->post()['name'] ?? null,
             'email' => $request->post()['email'] ?? null,
@@ -57,21 +95,41 @@ class AdminController extends Controller{
             'password' => $request->post()['password'] ?? null,
         ];
 
+        $user = $this->model->getUserByEmail($updateInfo['email']);
+
+        if ($user && $user['id'] !== (int) $id) {
+            Response::error(422, 'Such email is already in use');
+        }
+
         if (empty($updateInfo['email']) || empty($updateInfo['password'])) {
-            exit();
+            Response::error(400, 'Main fields are not filled in');
         }
-        if ($this->model->updateUserInfoById($id, $updateInfo)) {
-            Response::status(204);
+
+        $updatedInfo = $this->model->updateUserInfoById($id, $updateInfo);
+
+        if (empty($updatedInfo)) {
+            Response::error(404, 'No appropriate data found in database');
         }
-//    return $this->model->updateUserInfoById($updateInfo);
 
-//        $user = $this->model->getUserByEmail($initialEmail);
+        if ((int) $id == $_SESSION['user']['id']) {
+            $this->updateSessionParams($updatedInfo);
+        }
 
-//
-//    return $this->model->getUserByEmail($email);
-//        header('location: /');
-//        exit();
+        Response::status(204);
+    }
 
+    /**
+     * @param array $user
+     * @return void
+     */
+    private function updateSessionParams (array $user): void
+    {
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'admin' => $user['admin'],
+        ];
     }
 
 }

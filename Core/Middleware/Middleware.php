@@ -15,9 +15,9 @@ class Middleware
      */
     public static function resolve($role)
     {
-        if(!$role) {
-            return;
-        }
+//        if(!$role) {
+//            return;
+//        }
 
         $middleware = static::ROLES[$role] ?? false;
 

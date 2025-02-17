@@ -4,17 +4,27 @@ namespace App\Models;
 
 use Core\App;
 use Core\Database;
+use Core\Exceptions\ContainerException;
+use Core\Exceptions\ContainerNotFoundException;
 use Core\Model;
 
 class AdminModel extends Model
 {
     private Database $db;
 
+    /**
+     * @throws ContainerException
+     * @throws ContainerNotFoundException
+     */
     public function __construct()
     {
-        $this->db = App::getContainer()->get(Database::class);
+//        $this->db = App::getContainer()->get(Database::class);
+        $this->db = App::get(Database::class);
     }
 
+    /**
+     * @return bool|array
+     */
     public function getUsersList(): bool|array
     {
         $list = $this->db->query('SELECT `id`, `name`, `email`, `admin`, `age`, `gender` from `user`')->get();
@@ -22,22 +32,34 @@ class AdminModel extends Model
         return $list;
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     */
     public function getUserInfoById($id): mixed
     {
-        $info = $this->db->query('SELECT `id`, `name`, `email`, `admin`, `age`, `gender` from `user` WHERE `id` = :id', [
+        $info = $this->db->query('SELECT * from `user` WHERE `id` = :id', [
             ':id' => $id,
         ])->find();
 
         return $info;
     }
 
-    public function deleteUserById($id): Database
+    /**
+     * @param $id
+     * @return void
+     */
+    public function deleteUserById($id): void
     {
-        return $this->db->query('DELETE from `user` WHERE `id` = :id', [
+        $this->db->query('DELETE from `user` WHERE `id` = :id', [
             ':id' => $id,
         ]);
     }
 
+    /**
+     * @param $email
+     * @return mixed
+     */
     public function getUserByEmail($email): mixed
     {
         $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
@@ -47,9 +69,14 @@ class AdminModel extends Model
         return $user;
     }
 
-    public function updateUserInfoById($id, $updateInfo)
+    /**
+     * @param $id
+     * @param $updateInfo
+     * @return mixed
+     */
+    public function updateUserInfoById($id, $updateInfo): mixed
     {
-        return $this->db->query('UPDATE `user` SET `name` = :name, `email` = :email, `admin` = :admin, `age` = :age, `gender` = :gender, `password` = :password
+        $this->db->query('UPDATE `user` SET `name` = :name, `email` = :email, `admin` = :admin, `age` = :age, `gender` = :gender, `password` = :password
             WHERE `id` = :id', [
             ':id' => $id,
             ':name' => $updateInfo['name'],
@@ -59,5 +86,7 @@ class AdminModel extends Model
             ':gender' => $updateInfo['gender'],
             ':password' => password_hash($updateInfo['password'], PASSWORD_BCRYPT)
         ]);
+
+        return $this->getUserByEmail($updateInfo['email']);
     }
 }
