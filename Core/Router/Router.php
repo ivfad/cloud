@@ -1,7 +1,8 @@
 <?php
 
-namespace Core;
+namespace Core\Router;
 
+use Core\Foundation\Http\Request;
 use Core\Middleware\Middleware;
 
 class Router
@@ -31,7 +32,7 @@ class Router
 
     private function getRoutes(): array
     {
-        return require_once BASE_PATH . 'routes.php';
+        return require_once BASE_PATH . '/src/routes.php';
     }
 
     protected function abort($code = 404)

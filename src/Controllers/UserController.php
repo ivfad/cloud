@@ -4,18 +4,14 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use Core\App;
-use Core\Controller;
-//use Core\Database;
-use Core\Renderable;
-use Core\Request;
-//use Core\Route;
-use Core\View;
-use DateTimeImmutable;
+use Core\Foundation\Controller;
+use Core\Foundation\Helpers\Mailer;
+use Core\Foundation\Helpers\Renderable;
+use Core\Foundation\Http\Request;
+use Core\Foundation\Http\Response;
+use Core\Foundation\View;
 use JetBrains\PhpStorm\NoReturn;
-//use PDOException;
 use Psr\Container\ContainerExceptionInterface;
-//use App\Controllers\Mailer;
-use Core\Response;
 
 class UserController extends Controller{
 
@@ -31,7 +27,7 @@ class UserController extends Controller{
      */
     public function list():array
     {
-        $users = $this->model->getUsersList();
+        $users = $this->model->getList();
 
         if (empty($users)){
             Response::error(404, 'No appropriate data found in database');
@@ -49,7 +45,7 @@ class UserController extends Controller{
         $email = $request->post()['email'];
         $password = $request->post()['password'];
 
-        $user = $this->model->getUserByEmail($email);
+        $user = $this->model->getByEmail($email);
 
         if(!$user || !password_verify($password, $user['password'])) {
             Response::status(401);
@@ -107,7 +103,7 @@ class UserController extends Controller{
     public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
-        $info = $this->model->getUserInfoById($id);
+        $info = $this->model->getById($id);
 
         if (!$info) {
             Response::error('404', 'No appropriate data found in database');
@@ -129,7 +125,7 @@ class UserController extends Controller{
         $age = $request->post()['age'] ?? null;
         $gender = $request->post()['gender'] ?? null;
 
-        if (!$this->model->getUserByEmail($initialEmail)) {
+        if (!$this->model->getByEmail($initialEmail)) {
             Response::error(400, 'No such user, please re-login');
         }
 
@@ -137,11 +133,11 @@ class UserController extends Controller{
             Response::error(400, 'Main fields are not filled in');
         }
 
-        if ($email != $initialEmail && $this->model->getUserByEmail($email)) {
+        if ($email != $initialEmail && $this->model->getByEmail($email)) {
             Response::error(422, 'Such email is already in use');
         }
 
-        $user = $this->model->updateUserInfo($name, $email, $password, $age, $gender, $initialEmail);
+        $user = $this->model->updateInfo($name, $email, $password, $age, $gender, $initialEmail);
 
         $this->setSessionParams($user);
 
@@ -184,35 +180,6 @@ class UserController extends Controller{
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
         }
-    }
-
-    public function jwt()
-    {
-        require_once base_path('JWTCode.php');
-
-        $issuedAt   = new DateTimeImmutable();
-
-// Create token payload
-        $payload = [
-            'iss' => 'cloudstorage',
-            'sub' => $_SESSION['user'][ 'id'],
-            'admin' => $_SESSION['user'][ 'admin'],
-            'iat' => $issuedAt->getTimestamp(),
-            'exp' => $issuedAt->modify('+15 minutes')->getTimestamp()
-        ];
-
-        $accessToken = JWT::createAccessToken($_SESSION['user'][ 'id'], $_SESSION['user'][ 'admin']);
-
-        $refreshToken = JWT::createRefreshToken($_SESSION['user'][ 'id'], $_SESSION['user'][ 'admin']);
-//        $ans = [$accessToken, $refreshToken];
-//        dd($ans);
-//        dd(JWT::checkTokenExpired($refreshToken));
-        if(JWT::verifyToken($accessToken, 'access') == false) {
-            dd(JWT::verifyToken($accessToken, 'refresh'));
-        } else {
-            dd('Access JWT if ok');
-        }
-
     }
 }
 

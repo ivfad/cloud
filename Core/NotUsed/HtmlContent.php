@@ -1,6 +1,8 @@
 <?php
 
-namespace Core;
+namespace Core\NotUsed;
+
+use Core\Foundation\Helpers\Renderable;
 
 class HtmlContent implements Renderable
 {

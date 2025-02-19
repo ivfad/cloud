@@ -1,6 +1,6 @@
 <?php
 
-function dd($value)
+function dd($value): void
 {
     echo '<pre>';
     var_dump($value);
@@ -9,14 +9,4 @@ function dd($value)
     die();
 }
 
-function base_path($path):string
-{
-    return BASE_PATH . $path;
-}
 
-//function authorize($condition, $status = 403)
-//{
-//    if(! $condition) {
-//        dd('Not authorized');
-//    }
-//}

@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Core\Foundation\Helpers;
 
 trait SingletonTrait
 {

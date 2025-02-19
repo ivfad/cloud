@@ -1,8 +1,9 @@
 <?php
 
-namespace Core;
+namespace Core\Container;
 use Core\Exceptions\ContainerException;
 use Core\Exceptions\ContainerNotFoundException;
+use Core\Foundation\Helpers\SingletonTrait;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;

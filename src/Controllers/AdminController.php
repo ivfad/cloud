@@ -4,17 +4,10 @@ namespace App\Controllers;
 
 use App\Models\AdminModel;
 use Core\App;
-use Core\Controller;
-//use Core\Database;
-//use Core\Exceptions\ContainerException;
-//use Core\Exceptions\ContainerNotFoundException;
-//use Core\Middleware\User;
-use Core\Request;
-use Core\Response;
-//use Core\Route;
-use Core\View;
-//use JetBrains\PhpStorm\NoReturn;
-//use Psr\Container\ContainerExceptionInterface;
+use Core\Foundation\Controller;
+use Core\Foundation\Http\Request;
+use Core\Foundation\Http\Response;
+use Core\Foundation\View;
 
 
 class AdminController extends Controller{
@@ -31,7 +24,7 @@ class AdminController extends Controller{
      */
     public function list(): array
     {
-        $users = $this->model->getUsersList();
+        $users = $this->model->getList();
 
         if (empty($users)){
             Response::error(404, 'No appropriate data found in database');
@@ -48,7 +41,7 @@ class AdminController extends Controller{
     public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
-        $info = $this->model->getUserInfoById($id);
+        $info = $this->model->getById($id);
 
         if (!$info) {
             Response::error(404, 'No appropriate data found in database');
@@ -65,11 +58,11 @@ class AdminController extends Controller{
     {
         $id = $params['id'];
 
-        if (!$this->model->getUserInfoById($id)) {
+        if (!$this->model->getById($id)) {
             Response::error(404, 'No appropriate data found in database');
         }
 
-        $this->model->deleteUserById($id);
+        $this->model->deleteById($id);
         Response::status(204);
 
         if ((int) $id == $_SESSION['user']['id']) {
@@ -95,7 +88,7 @@ class AdminController extends Controller{
             'password' => $request->post()['password'] ?? null,
         ];
 
-        $user = $this->model->getUserByEmail($updateInfo['email']);
+        $user = $this->model->getByEmail($updateInfo['email']);
 
         if ($user && $user['id'] !== (int) $id) {
             Response::error(422, 'Such email is already in use');
@@ -105,7 +98,7 @@ class AdminController extends Controller{
             Response::error(400, 'Main fields are not filled in');
         }
 
-        $updatedInfo = $this->model->updateUserInfoById($id, $updateInfo);
+        $updatedInfo = $this->model->updateById($id, $updateInfo);
 
         if (empty($updatedInfo)) {
             Response::error(404, 'No appropriate data found in database');

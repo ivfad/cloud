@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Core\Container\Container;
+
 class App
 {
     /**

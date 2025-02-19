@@ -2,8 +2,7 @@
 
 namespace Core\Middleware;
 
-use Core\Response;
-use Core\Role;
+use Core\Foundation\Http\Response;
 
 class Guest implements Role
 {
