@@ -2,30 +2,14 @@
 
 namespace App\Models;
 
-use Core\App;
-use Core\Database;
-use Core\Exceptions\ContainerException;
-use Core\Exceptions\ContainerNotFoundException;
-use Core\Model;
+use Core\Foundation\Model;
 
 class AdminModel extends Model
 {
-    private Database $db;
-
     /**
-     * @throws ContainerException
-     * @throws ContainerNotFoundException
+     * @return array
      */
-    public function __construct()
-    {
-//        $this->db = App::getContainer()->get(Database::class);
-        $this->db = App::get(Database::class);
-    }
-
-    /**
-     * @return bool|array
-     */
-    public function getUsersList(): bool|array
+    public function getList(): array
     {
         $list = $this->db->query('SELECT `id`, `name`, `email`, `admin`, `age`, `gender` from `user`')->get();
 
@@ -36,7 +20,7 @@ class AdminModel extends Model
      * @param $id
      * @return mixed
      */
-    public function getUserInfoById($id): mixed
+    public function getById($id): mixed
     {
         $info = $this->db->query('SELECT * from `user` WHERE `id` = :id', [
             ':id' => $id,
@@ -49,7 +33,7 @@ class AdminModel extends Model
      * @param $id
      * @return void
      */
-    public function deleteUserById($id): void
+    public function deleteById($id): void
     {
         $this->db->query('DELETE from `user` WHERE `id` = :id', [
             ':id' => $id,
@@ -60,7 +44,7 @@ class AdminModel extends Model
      * @param $email
      * @return mixed
      */
-    public function getUserByEmail($email): mixed
+    public function getByEmail($email): mixed
     {
         $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
             ':email' => $email,
@@ -74,7 +58,7 @@ class AdminModel extends Model
      * @param $updateInfo
      * @return mixed
      */
-    public function updateUserInfoById($id, $updateInfo): mixed
+    public function updateById($id, $updateInfo): mixed
     {
         $this->db->query('UPDATE `user` SET `name` = :name, `email` = :email, `admin` = :admin, `age` = :age, `gender` = :gender, `password` = :password
             WHERE `id` = :id', [
@@ -87,6 +71,6 @@ class AdminModel extends Model
             ':password' => password_hash($updateInfo['password'], PASSWORD_BCRYPT)
         ]);
 
-        return $this->getUserByEmail($updateInfo['email']);
+        return $this->getByEmail($updateInfo['email']);
     }
 }

@@ -2,7 +2,7 @@
 
 //declare(strict_types=1);
 
-namespace Core;
+namespace Core\Foundation\Http;
 
 class Request
 {

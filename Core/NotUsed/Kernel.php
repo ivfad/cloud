@@ -1,6 +1,9 @@
 <?php
 
-namespace Core;
+namespace Core\NotUsed;
+
+use Core\Foundation\Http\Request;
+use Core\Foundation\Http\Response;
 
 class Kernel
 {

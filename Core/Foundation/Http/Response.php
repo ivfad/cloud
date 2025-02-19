@@ -1,7 +1,8 @@
 <?php
 
-namespace Core;
+namespace Core\Foundation\Http;
 
+use Core\Foundation\Helpers\Renderable;
 use JetBrains\PhpStorm\NoReturn;
 
 class Response

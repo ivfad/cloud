@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Controllers;
-use Core\Controller;
-use Core\View;
+use Core\Foundation\Controller;
+use Core\Foundation\Helpers\Renderable;
+use Core\Foundation\View;
 
 class HomeController extends Controller
 {
@@ -12,17 +13,13 @@ class HomeController extends Controller
         $this->view = new View();
     }
 
-    public function index()
+    /**
+     * @return Renderable
+     */
+    public function index(): Renderable
     {
-
-//        $this->view->render() = require_once base_path('index.view.php');
-//        dd($this->view);
-//        return 52;
         $this->view->setTemplate('index.view.php');
-        return $this->view->render();
 
-//        dd($this->view->render());
-//        $view = require_once base_path('index.view.php');
-//        exit();
+        return $this->view->render();
     }
 }

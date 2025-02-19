@@ -1,10 +1,11 @@
 <?php
-namespace App\Controllers;
+namespace Core\Foundation\Helpers;
+use Config\MailerConfig;
 use Core\App;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Container\ContainerExceptionInterface;
+
 
 class Mailer
 {
@@ -58,10 +59,12 @@ class Mailer
     private function add_config(): void
     {
         try {
-            App::bind(ConfigMailer::class, function () {
-                return new ConfigMailer();
+            require_once BASE_PATH . 'Config/MailerConfig.php';
+
+            App::bind(MailerConfig::class, function () {
+                return new MailerConfig();
             });
-            $this->config = App::get(ConfigMailer::class);
+            $this->config = App::get(MailerConfig::class);
             return;
         } catch (ContainerExceptionInterface $e) {
             echo 'Container exception: ' . $e->getMessage();
