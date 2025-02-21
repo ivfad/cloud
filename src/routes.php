@@ -34,4 +34,8 @@ return [
     Route::put('/admin/users/update/{id}', [AdminController::class, 'update'])->access('admin'),
     Route::delete('/admin/users/delete/{id}', [AdminController::class, 'delete'])->access('admin'),
 
+//    Route::get('/example2/{id}/{user}', [UserController::class, 'list']),
+//
+//    Route::get('/example1', function() { echo 'Example1';}),
+
 ];

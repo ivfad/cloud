@@ -172,7 +172,7 @@ class UserController extends Controller{
                 'address' => $_SESSION['user'][ 'email'],
                 'name' => $name,
                 'subject' => 'Link to change your password from Cloud storage',
-                'body' => "Hi, " . $name . ", here is <a href=\"#\"> a link to change your password</a>",
+                'body' => "Hello, " . $name . ", here is <a href=\"#\"> a link to change your password</a>",
                 'altbody' => 'Here is a link to change your password',
             ];
 

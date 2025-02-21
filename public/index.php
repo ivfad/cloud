@@ -7,7 +7,6 @@ use Core\Foundation\Http\Response;
 use Core\Router\Router;
 
 const BASE_PATH = __DIR__ . '/../';
-//const CORE_PATH = __DIR__ . '/../' . 'Core/';
 
 session_start();
 
@@ -17,7 +16,7 @@ require_once BASE_PATH . 'Config/bootstrap.php';
 $router = new Router();
 
 $request = Request::createFromGlobals();
-$content = $router->route($request);
+$content = $router->dispatch($request);
 
 Response::setContent($content);
 Response::send();

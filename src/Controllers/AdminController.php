@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\AdminModel;
 use Core\App;
+use Core\Exceptions\ContainerException;
+use Core\Exceptions\ContainerNotFoundException;
 use Core\Foundation\Controller;
 use Core\Foundation\Http\Request;
 use Core\Foundation\Http\Response;
@@ -51,8 +53,8 @@ class AdminController extends Controller{
     }
 
     /**
-     * @throws \Core\Exceptions\ContainerException
-     * @throws \Core\Exceptions\ContainerNotFoundException
+     * @throws ContainerException
+     * @throws ContainerNotFoundException
      */
     public function delete(Request $request, $params):void
     {

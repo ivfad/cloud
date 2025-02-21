@@ -18,23 +18,10 @@ try {
     $db = App::get(Database::class);
     $config = new DbConfig();
     $db->connect($config, username: 'root', password: '');
-    $initQuery = "CREATE TABLE IF NOT EXISTS `user` (
-            `id` int(11) NOT NULL AUTO_INCREMENT,
-            `name` varchar(255) NOT NULL,
-            `email` varchar(255) NOT NULL,
-            `admin` tinyint(1) NOT NULL,
-            `age` tinyint(3) DEFAULT NULL,
-            `gender` char(1) DEFAULT NULL,
-            `password` varchar(255) NOT NULL,
-            UNIQUE KEY `id` (`id`),
-            UNIQUE KEY `user_email_idx` (`email`) USING BTREE)
-            ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
-    $db->query($initQuery);
+    $db->query($config->init());
 } catch (ContainerExceptionInterface $e) {
     echo 'Container exception: ' . $e->getMessage();
 } catch (PDOException $e) {
     echo 'PDOException: ' . $e->getMessage();
 }
-
-
 
