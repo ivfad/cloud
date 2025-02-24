@@ -1,13 +1,15 @@
 <?php
 
 namespace Core\Container;
+
 use Core\Exceptions\ContainerException;
-use Core\Exceptions\ContainerNotFoundException;
-use Core\Foundation\Helpers\SingletonTrait;
+use Core\Exceptions\ServiceNotFoundException;
+use Core\Helpers\SingletonTrait;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
-
+use Throwable;
 
 class Container implements ContainerInterface
 {
@@ -26,7 +28,7 @@ class Container implements ContainerInterface
     protected array $bindings = [];
 
     /**
-     * Associate a singleton-pattern element to bindings
+     * Associate a singleton-pattern element to bindings array
      * @param string $id example: ClassName::class
      * @param object $instance example: Object:getInstance()
      * @return $this
@@ -34,11 +36,12 @@ class Container implements ContainerInterface
     public function singleton(string $id, object $instance): Container
     {
         $this->bindings[$id] = $instance;
+
         return $this;
     }
 
     /**
-     * Associate a common(non-singleton) element to bindings
+     * Associate a common(non-singleton) element to bindings array
      * @param string $id
      * example#1.1: InterfaceName::class
      * example#1.2: ClassName::class
@@ -51,10 +54,32 @@ class Container implements ContainerInterface
     public function bind(string $id, string|callable $resolver): Container
     {
         $this->bindings[$id] = $resolver;
+
         return $this;
     }
 
     /**
+     * Finds an entry of the container by its identifier and returns it.
+     * @param string $id
+     * @return mixed
+     * @throws ContainerExceptionInterface
+     */
+    public function get(string $id): mixed
+    {
+        try {
+            if (!$this->has($id)) {
+                $this->checkInstantiability($id);
+            }
+            return $this->createInstance($id);
+        } catch (ReflectionException|ServiceNotFoundException $e) {
+            throw new ServiceNotFoundException($e->getMessage());
+        } catch (Throwable $e) {
+            throw new ContainerException($e->getMessage());
+        }
+    }
+
+    /**
+     * Checks if there is a binding in the container.
      * Returns true if the container can return an entry for the given identifier.
      * Returns false otherwise.
      * @param string $id
@@ -65,58 +90,19 @@ class Container implements ContainerInterface
         return isset($this->bindings[$id]);
     }
 
-
-    /**
-     * Finds an entry of the container by its identifier and returns it.
-     * @param string $id
-     * @return mixed
-     * @throws ContainerException
-     * @throws ContainerNotFoundException
-     */
-    public function get(string $id): mixed
-    {
-        try {
-            if (! $this->has($id)) {
-                $this->checkInstantiability($id);
-            }
-            return $this->createInstance($id);
-        } catch(ReflectionException|ContainerNotFoundException $e) {
-            throw new ContainerNotFoundException($e->getMessage());
-        } catch(ContainerException $e) {
-            throw new ContainerException($e->getMessage());
-        }
-
-//        if (! $this->has($id)) {
-//            try {
-//                $this->checkInstantiability($id);
-//            } catch (ReflectionException $e) {
-//                echo $e->getMessage();
-//            }
-//        }
-//
-//        try {
-//            $instance = $this->createInstance($id);
-//            return $instance;
-//        } catch(Exception $e) {
-//            echo $e->getMessage();
-//        }
-
-        return null;
-    }
-
     /**
      * Check possibility of creating an instance of $id
      * @param string $id
      * @return string
-     * @throws ContainerException
+     * @throws ServiceNotFoundException
      * @throws ReflectionException
      */
-    protected function checkInstantiability(string $id): string
+    private function checkInstantiability(string $id): string
     {
         $reflection = $this->createReflection($id);
 
-        if (! $reflection->isInstantiable()) {
-            throw new ContainerException("{$id} is not instantiable");
+        if (!$reflection->isInstantiable()) {
+            throw new ServiceNotFoundException("ServiceNotFoundException: {$id} is not instantiable");
         }
 
         return $id;
@@ -128,78 +114,105 @@ class Container implements ContainerInterface
      * @return ReflectionClass
      * @throws ReflectionException
      */
-    protected function createReflection(string $id): ReflectionClass
+    private function createReflection(string $id): ReflectionClass
     {
         $reflection = new ReflectionClass($id);
 
-        if (! isset($reflection)) {
-            throw new ReflectionException("Cannot create reflection of {$id}");
+        if (!isset($reflection)) {
+            throw new ReflectionException("ReflectionException: cannot create reflection of {$id}");
         }
 
         return $reflection;
     }
 
     /**
-     * Create instance of an item and recursively create instances of its dependencies(if needed)
-     * Case 1 - an entry is associated with container and its resolver is callable - this resolver is called
-     * Case 2 - an associated entry is singleton - its resolver (object) is returned
-     * Case 3 - an instantiable item has empty constructor - means no dependencies to resolve, new instance of item is returned
-     * Case 4 - $id is an abstract class or interface, resolver is set - resolver instance is created (recursion)
-     * Case 5 - element without dependencies has no bindings - exception
-     * Case 6 - no parameters needed - new instance of item is returned
-     * Case 7 - for each parameter of the constructor recursively check and add parameter instance to list
+     * Processes the creation of instances by its id. Recursively create instances of its dependencies if needed.
      * Return instance of $id with all instances of parameters of its constructor
      * @param string $id
      * @return mixed
-     * @throws ContainerException
-     * @throws ContainerNotFoundException
-     * @throws ReflectionException
+     * @throws ServiceNotFoundException | ReflectionException
      */
-    protected function createInstance(string $id): mixed
+    private function createInstance(string $id): mixed
     {
-        //Case 1
-        if ($this->has($id) && is_callable($this->bindings[$id])) {
-            return call_user_func($this->bindings[$id]);
-        }
-
-        //Case 2
-        if ($this->has($id) && is_object($this->bindings[$id])) {
-            return $this->bindings[$id];
+        if ($this->has($id)) {
+            $result = $this->resolveBinding($id);
+            if ($result !== null) {
+                return $result;
+            }
         }
 
         $reflection = $this->createReflection($id);
         $constructor = $reflection->getConstructor();
 
-        //Case 3
-        if (empty($constructor) && $reflection->isInstantiable()) return new $id;
-
-        //Case 4
-        if (empty($constructor) && isset($this->bindings[$id]))
-        {
-            $id = $this->bindings[$id];
-            return $this->createInstance($id);
+        if (empty($constructor)) {
+            return $this->handleNonParametricReflection($id, $reflection);
         }
-
-        //Case 5
-        if (empty($constructor) && !isset($this->bindings[$id]))
-        {
-            throw new ContainerNotFoundException("{$id} is not instantiable");
-        }
-
         $parameters = $constructor->getParameters();
-        $parametersList = [];
 
-        //Case 6
         if (empty($parameters)) return new $id;
 
-        //Case 7
-        foreach ($parameters as $parameter) {
-            if(!$parameter->getType() && !$parameter->isOptional()) {
-                throw new ContainerException("Parameter {$parameter->getName()} of {$id} is not instantiable");
-            }
-            $parametersList []= $this->createInstance($parameter->getType()->getName());
+        return $this->handleParametricReflection($id, $parameters);
+    }
+
+    /**
+     * Resolves simple bindings for callables and singleton-objects. In other cases returns null.
+     * @param string $id
+     * @return mixed
+     */
+    private function resolveBinding(string $id): mixed
+    {
+        if (is_callable($this->bindings[$id])) {
+            return call_user_func($this->bindings[$id]);
+        }
+        if (is_object($this->bindings[$id])) {
+            return $this->bindings[$id];
+        }
+        return null;
+    }
+
+    /**
+     * Processes cases for reflections without parameters. When reflection is instantiable - new instance of item is returned.
+     * If reflection is not instantiable, but there is a binding for $id - resolver instance is created.
+     * Exception is thrown in other cases
+     * @param string $id
+     * @param $reflection
+     * @return mixed
+     * @throws ServiceNotFoundException | ReflectionException
+     */
+    private function handleNonParametricReflection(string $id, $reflection): mixed
+    {
+        if ($reflection->isInstantiable()) {
+            return new $id;
         }
 
+        if (isset($this->bindings[$id])) {
+            return $this->createInstance($this->bindings[$id]);
+        }
+
+        throw new ServiceNotFoundException("ServiceNotFoundException: {$id} is not instantiable");
+    }
+
+    /**
+     * Processes cases for reflections with parameters.
+     * Recursively creates instances for each parameter of the reflection and adds them to the result array.
+     * Throws an exception, if any parameter is not instantiable.
+     * @param $id
+     * @param $parameters
+     * @return mixed
+     * @throws ServiceNotFoundException | ReflectionException
+     */
+    private function handleParametricReflection($id, $parameters): mixed
+    {
+        $parametersList = [];
+
+        foreach ($parameters as $parameter) {
+            if (!$parameter->getType() && !$parameter->isOptional()) {
+                throw new ServiceNotFoundException("ServiceNotFoundException: Parameter {$parameter->getName()} of {$id} is not instantiable");
+            }
+
+            $parametersList[] = $this->createInstance($parameter->getType()->getName());
+        }
         return new $id(...$parametersList);
     }
+
 }

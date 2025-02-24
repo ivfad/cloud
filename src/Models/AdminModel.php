@@ -41,19 +41,6 @@ class AdminModel extends Model
     }
 
     /**
-     * @param $email
-     * @return mixed
-     */
-    public function getByEmail($email): mixed
-    {
-        $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
-            ':email' => $email,
-        ])->find();
-
-        return $user;
-    }
-
-    /**
      * @param $id
      * @param $updateInfo
      * @return mixed
@@ -72,5 +59,18 @@ class AdminModel extends Model
         ]);
 
         return $this->getByEmail($updateInfo['email']);
+    }
+
+    /**
+     * @param $email
+     * @return mixed
+     */
+    public function getByEmail($email): mixed
+    {
+        $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
+            ':email' => $email,
+        ])->find();
+
+        return $user;
     }
 }

@@ -13,17 +13,17 @@ class Route
      */
 
     public function __construct(
-        private readonly string $uri,
-        private readonly string $method,
+        private readonly string        $uri,
+        private readonly string        $method,
         private readonly array|Closure $action,
-        private ?string $middleware = null,
-        private ?array $uriParams = null,
+        private ?string                $middleware = null,
+        private ?array                 $uriParams = null,
     )
     {
     }
 
     /**
-     * Create a route with get method
+     * Create a route with GET method
      * @param string $uri
      * @param $action
      * @return static
@@ -34,7 +34,7 @@ class Route
     }
 
     /**
-     * Create a route with post method
+     * Create a route with POST method
      * @param string $uri
      * @param $action
      * @return static
@@ -45,7 +45,7 @@ class Route
     }
 
     /**
-     * Create a route with put method
+     * Create a route with PUT method
      * @param string $uri
      * @param $action
      * @return static
@@ -56,7 +56,7 @@ class Route
     }
 
     /**
-     * Create a route with patch method
+     * Create a route with PATCH method
      * @param string $uri
      * @param $action
      * @return static
@@ -67,7 +67,7 @@ class Route
     }
 
     /**
-     * Create a route with delete method
+     * Create a route with DELETE method
      * @param string $uri
      * @param $action
      * @return static
@@ -79,10 +79,10 @@ class Route
 
 
     /**
-     * Get route's uri
+     * Get route's URI
      * @return string
      */
-    public function getUri():string
+    public function getUri(): string
     {
         return $this->uri;
     }
@@ -91,7 +91,7 @@ class Route
      * Get route's method
      * @return string
      */
-    public function getMethod():string
+    public function getMethod(): string
     {
         return $this->method;
     }
@@ -110,7 +110,7 @@ class Route
      * @param $role
      * @return $this
      */
-    public function access($role):self
+    public function access($role): self
     {
         $this->middleware = $role;
 
@@ -130,14 +130,14 @@ class Route
      * Set routes variable parameters like {id}
      * @return void
      */
-    public function setUriParams():void
+    public function setUriParams(): void
     {
         $uriParts = explode('/', $this->uri);
         array_shift($uriParts);
         $characters = ['{', '}'];
 
-        for($i = 0; $i < count($uriParts); $i++) {
-            if (preg_match("/[{][\w]+[}]/", $uriParts[$i])) {
+        for ($i = 0; $i < count($uriParts); $i++) {
+            if (preg_match("/[{]\w+[}]/", $uriParts[$i])) {
                 $part = str_replace($characters, '', $uriParts[$i]);
                 $this->uriParams[intval($i)] = $part;
             }
@@ -154,5 +154,4 @@ class Route
         return $this->uriParams;
     }
 
-
-    }
+}

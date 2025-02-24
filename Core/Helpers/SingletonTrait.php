@@ -1,22 +1,20 @@
 <?php
 
-namespace Core\Foundation\Helpers;
+namespace Core\Helpers;
 
 trait SingletonTrait
 {
     /**
      * Singleton pattern implementation
      */
-    final protected function __construct() {}
-
-    final protected function __clone() {}
-
-    final public function __wakeup() {}
+    final protected function __construct()
+    {
+    }
 
     /**
      * @return static
      */
-    final public static function getInstance():static
+    final public static function getInstance(): static
     {
         static $instance = null;
 
@@ -25,5 +23,13 @@ trait SingletonTrait
         }
 
         return $instance;
+    }
+
+    final public function __wakeup()
+    {
+    }
+
+    final protected function __clone()
+    {
     }
 }

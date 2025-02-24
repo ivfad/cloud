@@ -4,15 +4,14 @@ namespace Core\Foundation;
 
 use Core\App;
 use Core\Database\Database;
-use Core\Exceptions\ContainerException;
-use Core\Exceptions\ContainerNotFoundException;
+use Psr\Container\ContainerExceptionInterface;
 
 abstract class Model
 {
     protected Database $db;
+
     /**
-     * @throws ContainerException
-     * @throws ContainerNotFoundException
+     * @throws ContainerExceptionInterface
      */
     public function __construct()
     {

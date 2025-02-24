@@ -4,7 +4,7 @@ namespace Core\Exceptions;
 
 use Exception;
 
-class MiddlewareRoleException extends Exception
+class MailerException extends Exception
 {
 
 }

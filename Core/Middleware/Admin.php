@@ -2,17 +2,18 @@
 
 namespace Core\Middleware;
 
-use Core\Foundation\Http\Response;
+use Core\Exceptions\AuthorizationException;
 
 class Admin implements Role
 {
     /**
      * @return void
+     * @throws AuthorizationException
      */
     public function handle(): void
     {
-        if(!$_SESSION || !$_SESSION['user']['admin']) {
-            Response::error(403, 'No permission to view the content');
+        if (!$_SESSION || !$_SESSION['user']['admin']) {
+            throw new AuthorizationException("No permission to view the content");
         }
     }
 }

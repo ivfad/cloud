@@ -3,7 +3,6 @@
 namespace Core\Middleware;
 
 use Core\Exceptions\MiddlewareRoleException;
-use JetBrains\PhpStorm\NoReturn;
 
 class Middleware
 {
@@ -23,11 +22,11 @@ class Middleware
      * @return void
      * @throws MiddlewareRoleException
      */
-    #[NoReturn] public static function resolve($role): void
+    public static function resolve($role): void
     {
 
         $middleware = static::ROLES[$role] ?? false;
-        if(!$middleware) {
+        if (!$middleware) {
             throw new MiddlewareRoleException("No such middleware role: {$role}");
         }
 

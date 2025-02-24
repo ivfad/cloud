@@ -2,7 +2,7 @@
 
 namespace Core\Foundation;
 
-use Core\Foundation\Helpers\Renderable;
+use Core\Helpers\Renderable;
 
 class View implements Renderable
 {
@@ -14,21 +14,33 @@ class View implements Renderable
     {
     }
 
+    /** Loads and executes the specified template and saves the result in $html variable
+     * @return Renderable
+     */
     public function render(): Renderable
     {
         ob_start();
-        require_once BASE_PATH . 'src\Views\\' . $this->template;
+        require_once BASE_PATH . 'src\Templates\\' . $this->template;
         $this->html = ob_get_contents();
         ob_end_clean();
 
         return $this;
     }
 
+    /**
+     * Getter of html-content of view
+     * @return string
+     */
     public function getHtml(): string
     {
         return $this->html;
     }
 
+    /**
+     * Setter of html-template for view
+     * @param $template
+     * @return void
+     */
     public function setTemplate($template): void
     {
         $this->template = $template;

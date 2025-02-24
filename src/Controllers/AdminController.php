@@ -4,15 +4,15 @@ namespace App\Controllers;
 
 use App\Models\AdminModel;
 use Core\App;
-use Core\Exceptions\ContainerException;
-use Core\Exceptions\ContainerNotFoundException;
 use Core\Foundation\Controller;
 use Core\Foundation\Http\Request;
 use Core\Foundation\Http\Response;
 use Core\Foundation\View;
+use Psr\Container\ContainerExceptionInterface;
 
 
-class AdminController extends Controller{
+class AdminController extends Controller
+{
 
     function __construct()
     {
@@ -28,11 +28,33 @@ class AdminController extends Controller{
     {
         $users = $this->model->getList();
 
-        if (empty($users)){
+        if (empty($users)) {
             Response::error(404, 'No appropriate data found in database');
         }
 
         return $users;
+    }
+
+    /**
+     * @param Request $request
+     * @param $params
+     * @return void
+     * @throws ContainerExceptionInterface
+     */
+    public function delete(Request $request, $params): void
+    {
+        $id = $params['id'];
+
+        if (!$this->model->getById($id)) {
+            Response::error(404, 'No appropriate data found in database');
+        }
+
+        $this->model->deleteById($id);
+        Response::status(204);
+
+        if ((int)$id == $_SESSION['user']['id']) {
+            App::get(UserController::class)->logout();
+        }
     }
 
     /**
@@ -50,26 +72,6 @@ class AdminController extends Controller{
         }
 
         return $info;
-    }
-
-    /**
-     * @throws ContainerException
-     * @throws ContainerNotFoundException
-     */
-    public function delete(Request $request, $params):void
-    {
-        $id = $params['id'];
-
-        if (!$this->model->getById($id)) {
-            Response::error(404, 'No appropriate data found in database');
-        }
-
-        $this->model->deleteById($id);
-        Response::status(204);
-
-        if ((int) $id == $_SESSION['user']['id']) {
-            App::get(UserController::class)->logout();
-        }
     }
 
     /**
@@ -92,7 +94,7 @@ class AdminController extends Controller{
 
         $user = $this->model->getByEmail($updateInfo['email']);
 
-        if ($user && $user['id'] !== (int) $id) {
+        if ($user && $user['id'] !== (int)$id) {
             Response::error(422, 'Such email is already in use');
         }
 
@@ -106,7 +108,7 @@ class AdminController extends Controller{
             Response::error(404, 'No appropriate data found in database');
         }
 
-        if ((int) $id == $_SESSION['user']['id']) {
+        if ((int)$id == $_SESSION['user']['id']) {
             $this->updateSessionParams($updatedInfo);
         }
 
@@ -117,7 +119,7 @@ class AdminController extends Controller{
      * @param array $user
      * @return void
      */
-    private function updateSessionParams (array $user): void
+    private function updateSessionParams(array $user): void
     {
         $_SESSION['user'] = [
             'id' => $user['id'],

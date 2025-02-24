@@ -2,16 +2,23 @@
 
 namespace Core\Router;
 
+use Core\Exceptions\AuthenticationException;
+use Core\Exceptions\AuthorizationException;
 use Core\Exceptions\MiddlewareRoleException;
+use Core\Exceptions\RouteNotFoundException;
 use Core\Foundation\Http\Request;
 use Core\Foundation\Http\Response;
+use Core\Helpers\ActionFactory;
 use Core\Middleware\Middleware;
+use Exception;
+use Throwable;
 
 class Router
 {
     /**
-     * Http-requests router
-     *
+     * Class is used to compare current URI with the list of preset routes,
+     * start the verification of permission to view the content of the called route
+     * and apply necessary controller to the route
      */
 
     protected array $routes = [
@@ -51,64 +58,40 @@ class Router
     }
 
     /**
-     * @throws MiddlewareRoleException|\Exception
+     * Handles the request by comparing current URI with the list of preset routes,
+     * checking permission to view the content and applying a necessary action from ActionFactory
+     * @param Request $request
+     * @return mixed
      */
     public function dispatch(Request $request): mixed
     {
-        $currentRoute = $this->findRoute($request->uri(), $request->method());
+        try {
+            $currentRoute = $this->findRoute($request->uri(), $request->method());
 
-        if (!$currentRoute) {
-            Response::error(404, 'Route does not exist');
-        }
-
-        $this->checkAccess($currentRoute);
-
-        $params = $this->getParams($request->uri(), $currentRoute);
-        $action = $currentRoute->getAction();
-
-        if (is_array($action)) {
-            $action = $this->createController($currentRoute->getAction());
-        }
-
-        return call_user_func($action, $request, $params);
-    }
-
-    /**
-     * Checks access rights to the requested resource.
-     * In case of problems, appropriate response should be sent at the Middleware level.
-     * @param $route
-     * @return void
-     */
-    private function checkAccess($route): void
-    {
-        $role = $route->getMiddleware() ?? false;
-        if ($role) {
-            try {
-                Middleware::resolve($role);
-            } catch (MiddlewareRoleException $e) {
-                echo 'MiddlewareRoleException: ' . $e->getMessage();
+            if (!$currentRoute) {
+                throw new RouteNotFoundException('Route does not exist');
             }
+
+            $this->checkAccess($currentRoute);
+
+            $action = $currentRoute->getAction();
+            $callableAction = ActionFactory::create($action);
+
+            $params = $this->getParams($request->uri(), $currentRoute);
+
+            return call_user_func($callableAction, $request, $params);
+
+        } catch (AuthenticationException $e) {
+            Response::error(401, $e->getMessage());
+        } catch (AuthorizationException $e) {
+            Response::error(403, $e->getMessage());
+        } catch (RouteNotFoundException $e) {
+            Response::error(404, $e->getMessage());
+        } catch (MiddlewareRoleException|Exception $e) {
+            Response::error(500, $e->getMessage());
+        } catch (Throwable $e) {
+            Response::error(500, 'Internal Server Error:' . $e->getMessage());
         }
-    }
-
-    /**
-     * Creates an instance of requested controller.
-     * Will be replaced by a factory pattern implementation in the nearest future.
-     * @param array $controller
-     * @return array
-     * @throws \Exception
-     */
-    public function createController(array $controller): array
-    {
-        [$controllerClassName, $action] = $controller;
-
-        if (!class_exists($controllerClassName)) {
-            throw new \Exception("Controller '$controllerClassName' not found");
-        }
-
-        $controllerObject = new $controllerClassName;
-
-        return [$controllerObject, $action];
     }
 
     /**
@@ -132,21 +115,21 @@ class Router
 
         $currentUriParts = array_filter(explode('/', $uri), 'ctype_alnum');
 
-        foreach($this->routes[$method] as $savedRoute) {
+        foreach ($this->routes[$method] as $savedRoute) {
 
-            if(!$savedRoute->getUriParams()) continue;
+            if (!$savedRoute->getUriParams()) continue;
 
             $savedRouteParts = explode('/', $savedRoute->getUri());
             array_shift($savedRouteParts);
 
-            if(count($currentUriParts) !== count($savedRouteParts)) {
+            if (count($currentUriParts) !== count($savedRouteParts)) {
                 continue;
             }
 
             $differentParts = array_diff($currentUriParts, $savedRouteParts);
 
             $savedRouteParams = $savedRoute->getUriParams();
-            if(count($differentParts) !== count($savedRouteParams)) {
+            if (count($differentParts) !== count($savedRouteParams)) {
                 continue;
             }
 
@@ -159,19 +142,33 @@ class Router
     }
 
     /**
+     * Checks access rights to the requested resource.
+     * @param Route $route
+     * @return void
+     * @throws MiddlewareRoleException
+     */
+    private function checkAccess(Route $route): void
+    {
+        $role = $route->getMiddleware() ?? false;
+        if ($role) {
+            Middleware::resolve($role);
+        }
+    }
+
+    /**
      * Get URI parameters of the current route
-     * @param $uri
-     * @param $currentRoute
+     * @param string $uri
+     * @param Route $currentRoute
      * @return array
      */
-    private function getParams($uri, $currentRoute): array
+    private function getParams(string $uri, Route $currentRoute): array
     {
         $uriParts = explode('/', $uri);
         array_shift($uriParts);
 
         $parameters = [];
 
-        if($currentRoute->getUriParams()) {
+        if ($currentRoute->getUriParams()) {
             foreach ($currentRoute->getUriParams() as $key => $paramName) {
                 $parameters[$paramName] = $uriParts[$key];
             }
@@ -179,5 +176,4 @@ class Router
 
         return $parameters;
     }
-
 }

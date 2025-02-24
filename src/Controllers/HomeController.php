@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Controllers;
+
 use Core\Foundation\Controller;
-use Core\Foundation\Helpers\Renderable;
 use Core\Foundation\View;
+use Core\Helpers\Renderable;
 
 class HomeController extends Controller
 {
