@@ -2,85 +2,156 @@
 
 namespace Core\Router;
 
+use Closure;
+
 class Route
 {
+    /**
+     * Class used to define the form of description of routes with its URIs, http-methods, actions and middleware roles.
+     * List of routes is set in src/routes.php file
+     *
+     */
+
     public function __construct(
-        private $uri,
-        private $method,
-        private $action,
-        private $middleware = null,
-        private $uriParams = null,
+        private readonly string        $uri,
+        private readonly string        $method,
+        private readonly array|Closure $action,
+        private ?string                $middleware = null,
+        private ?array                 $uriParams = null,
     )
     {
     }
 
+    /**
+     * Create a route with GET method
+     * @param string $uri
+     * @param $action
+     * @return static
+     */
     public static function get(string $uri, $action): static
     {
         return new static($uri, 'GET', $action);
     }
 
+    /**
+     * Create a route with POST method
+     * @param string $uri
+     * @param $action
+     * @return static
+     */
     public static function post(string $uri, $action): static
     {
         return new static($uri, 'POST', $action);
     }
 
+    /**
+     * Create a route with PUT method
+     * @param string $uri
+     * @param $action
+     * @return static
+     */
     public static function put(string $uri, $action): static
     {
         return new static($uri, 'PUT', $action);
     }
 
+    /**
+     * Create a route with PATCH method
+     * @param string $uri
+     * @param $action
+     * @return static
+     */
     public static function patch(string $uri, $action): static
     {
         return new static($uri, 'PATCH', $action);
     }
 
-    public static function delete(string $uri,$action): static
+    /**
+     * Create a route with DELETE method
+     * @param string $uri
+     * @param $action
+     * @return static
+     */
+    public static function delete(string $uri, $action): static
     {
         return new static($uri, 'DELETE', $action);
     }
 
-    public function access($role):self
+
+    /**
+     * Get route's URI
+     * @return string
+     */
+    public function getUri(): string
+    {
+        return $this->uri;
+    }
+
+    /**
+     * Get route's method
+     * @return string
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * Get route's action
+     * @return array|Closure
+     */
+    public function getAction(): array|Closure
+    {
+        return $this->action;
+    }
+
+    /**
+     * Set route's middleware-role
+     * @param $role
+     * @return $this
+     */
+    public function access($role): self
     {
         $this->middleware = $role;
 
         return $this;
     }
 
-    public function getUri():string
+    /**
+     * Get route's middleware-role
+     * @return string|null
+     */
+    public function getMiddleware(): ?string
     {
-        return $this->uri;
+        return $this->middleware;
     }
 
-    public function getMethod():string
-    {
-        return $this->method;
-    }
-
-    public function getAction()
-    {
-        return $this->action;
-    }
-
-    public function setUriParams():void
+    /**
+     * Set routes variable parameters like {id}
+     * @return void
+     */
+    public function setUriParams(): void
     {
         $uriParts = explode('/', $this->uri);
-        array_shift($uriParts); // trims the first empty element
+        array_shift($uriParts);
         $characters = ['{', '}'];
-        for($i = 0; $i < count($uriParts); $i++) {
-            if (preg_match("/[{][\w]+[}]/", $uriParts[$i])) {
+
+        for ($i = 0; $i < count($uriParts); $i++) {
+            if (preg_match("/[{]\w+[}]/", $uriParts[$i])) {
                 $part = str_replace($characters, '', $uriParts[$i]);
                 $this->uriParams[intval($i)] = $part;
             }
         }
     }
 
-    public function getUriParams()
+    /**
+     * Get routes variable parameters like {id}
+     * @return array|null
+     */
+    public function getUriParams(): ?array
     {
+
         return $this->uriParams;
     }
 
-    public function getMiddleware()
-    {
-        return $this->middleware;
-    }
-    }
+}

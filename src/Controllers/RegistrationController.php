@@ -3,11 +3,10 @@
 namespace App\Controllers;
 use App\Models\RegistrationModel;
 use Core\Foundation\Controller;
-use Core\Foundation\Helpers\Renderable;
 use Core\Foundation\Http\Request;
 use Core\Foundation\Http\Response;
 use Core\Foundation\View;
-use JetBrains\PhpStorm\NoReturn;
+use Core\Helpers\Renderable;
 
 class RegistrationController extends Controller
 
@@ -28,12 +27,11 @@ class RegistrationController extends Controller
         return $this->view->render();
     }
 
-
     /**
      * @param Request $request
      * @return void
      */
-    #[NoReturn] public function store(Request $request): void
+    public function store(Request $request): void
     {
         $email = $request->post()['email'];
 

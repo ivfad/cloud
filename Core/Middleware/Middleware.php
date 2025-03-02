@@ -2,29 +2,34 @@
 
 namespace Core\Middleware;
 
+use Core\Exceptions\MiddlewareRoleException;
+
 class Middleware
 {
+    /**
+     * Middleware layer, where the user's role is defined and then a handler of the corresponding class is applied
+     */
+
     const ROLES = [
         'guest' => Guest::class,
         'user' => User::class,
         'admin' => Admin::class,
     ];
 
+
     /**
-     * @throws \Exception
+     * @param $role
+     * @return void
+     * @throws MiddlewareRoleException
      */
-    public static function resolve($role)
+    public static function resolve($role): void
     {
-//        if(!$role) {
-//            return;
-//        }
 
         $middleware = static::ROLES[$role] ?? false;
-
-        if(!$middleware) {
-            throw new \Exception("No such middleware role: {$role}");
+        if (!$middleware) {
+            throw new MiddlewareRoleException("No such middleware role: {$role}");
         }
 
-        return (new $middleware)->handle();
+        (new $middleware)->handle();
     }
 }

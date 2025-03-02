@@ -30,19 +30,6 @@ class UserModel extends Model
     }
 
     /**
-     * @param $email
-     * @return mixed
-     */
-    public function getByEmail($email): mixed
-    {
-        $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
-            ':email' => $email,
-        ])->find();
-
-        return $user;
-    }
-
-    /**
      * @param $name
      * @param $email
      * @param $password
@@ -69,8 +56,21 @@ class UserModel extends Model
                 ':password' => password_hash($password, PASSWORD_BCRYPT),
                 ':age' => $age,
                 ':gender' => $gender
-        ]);
+            ]);
 
         return $this->getByEmail($email);
+    }
+
+    /**
+     * @param $email
+     * @return mixed
+     */
+    public function getByEmail($email): mixed
+    {
+        $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
+            ':email' => $email,
+        ])->find();
+
+        return $user;
     }
 }

@@ -11,7 +11,7 @@ class Guest implements Role
      */
     public function handle(): void
     {
-        if($_SESSION['user'] ?? false) {
+        if ($_SESSION['user'] ?? false) {
             Response::redirect(303, 'location: /');
         }
     }

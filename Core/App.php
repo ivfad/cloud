@@ -3,34 +3,19 @@
 namespace Core;
 
 use Core\Container\Container;
+use Psr\Container\ContainerExceptionInterface;
 
 class App
 {
     /**
      * Facade pattern implementation
-     * Class intended for convenient work with containers
+     * Class intended for convenient work with container bindings and
      */
 
     protected static Container $container;
 
     /**
-     * @param Container $container
-     * @return void
-     */
-    public static function setContainer(Container $container): void
-    {
-        static::$container = $container;
-    }
-
-    /**
-     * @return Container
-     */
-    public static function getContainer(): Container
-    {
-        return static::$container;
-    }
-
-    /**
+     * Bind an instance to the container
      * @param string $id
      * @param string|callable $resolver
      * @return void
@@ -41,6 +26,26 @@ class App
     }
 
     /**
+     * Getter of the container instance (singleton)
+     * @return Container
+     */
+    public static function getContainer(): Container
+    {
+        return static::$container;
+    }
+
+    /**
+     * Setter of the container instance (singleton)
+     * @param Container $container
+     * @return void
+     */
+    public static function setContainer(Container $container): void
+    {
+        static::$container = $container;
+    }
+
+    /**
+     * Bind a singleton-type instance to the container
      * @param string $id
      * @param object $instance
      * @return void
@@ -51,10 +56,12 @@ class App
     }
 
     /**
-     * @throws Exceptions\ContainerException
-     * @throws Exceptions\ContainerNotFoundException
+     * Gets a bound instance (of any type) from the container
+     * @param string $id
+     * @return mixed
+     * @throws ContainerExceptionInterface
      */
-    public static function get($id)
+    public static function get(string $id): mixed
     {
         return static::getContainer()->get($id);
     }

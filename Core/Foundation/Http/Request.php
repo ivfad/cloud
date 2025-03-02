@@ -1,7 +1,5 @@
 <?php
 
-//declare(strict_types=1);
-
 namespace Core\Foundation\Http;
 
 class Request
@@ -35,16 +33,16 @@ class Request
     }
 
     /**
-     * Getter of the $_GET parameters of current request
+     * Getter of $_GET parameters of current request
      * @return array
      */
     public function get(): array
     {
-       return $this->getParams;
+        return $this->getParams;
     }
 
     /**
-     * Getter of the $_POST parameters of current request
+     * Getter of $_POST parameters of current request
      * @return array
      */
     public function post(): array
@@ -60,7 +58,6 @@ class Request
     {
         return parse_url($this->server['REQUEST_URI'])['path'] ?? '/';
     }
-
 
     /**
      * Get current request's method

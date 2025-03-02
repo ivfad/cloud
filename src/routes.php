@@ -16,6 +16,7 @@ use Core\Router\Route;
 return [
 
     Route::get('/', [HomeController::class, 'index']),
+    Route::get('/test', [HomeController::class, 'index2']),
 
     Route::get('/register', [RegistrationController::class, 'index'])->access('guest'),
     Route::post('/register', [RegistrationController::class, 'store'])->access('guest'),
