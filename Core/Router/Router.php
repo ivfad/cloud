@@ -66,12 +66,11 @@ class Router
     public function dispatch(Request $request): mixed
     {
         try {
-            $currentRoute = $this->findRoute($request->uri(), $request->method());
+            $currentRoute = $this->findRoute($request->uri(), $request->method(), $request->get());
 
             if (!$currentRoute) {
                 throw new RouteNotFoundException('Route does not exist');
             }
-
             $this->checkAccess($currentRoute);
 
             $action = $currentRoute->getAction();
@@ -106,7 +105,7 @@ class Router
      * @param string $method
      * @return Route|null
      */
-    private function findRoute(string $uri, string $method): ?Route
+    private function findRoute(string $uri, string $method, $params): ?Route
     {
         if (isset($this->routes[$method][$uri])) {
 
@@ -122,6 +121,7 @@ class Router
             $savedRouteParts = explode('/', $savedRoute->getUri());
             array_shift($savedRouteParts);
 
+
             if (count($currentUriParts) !== count($savedRouteParts)) {
                 continue;
             }
@@ -132,7 +132,6 @@ class Router
             if (count($differentParts) !== count($savedRouteParams)) {
                 continue;
             }
-
             $route = $this->routes[$method][$savedRoute->getUri()];
 
             return $route;
@@ -165,7 +164,6 @@ class Router
     {
         $uriParts = explode('/', $uri);
         array_shift($uriParts);
-
         $parameters = [];
 
         if ($currentRoute->getUriParams()) {

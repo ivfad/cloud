@@ -27,7 +27,6 @@ class RegistrationController extends Controller
         return $this->view->render();
     }
 
-
     /**
      * @param Request $request
      * @return void

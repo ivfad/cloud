@@ -104,7 +104,7 @@ class UserController extends Controller
     public function update(Request $request): mixed
     {
         $initialEmail = $_SESSION['user']['email'];
-        $email = $request->post()['email'] ?? null;
+        $email = $request->post()['email'] ?? $_SESSION['user']['email'];
         $password = $request->post()['password'] ?? null;
         $name = $request->post()['name'] ?? null;
         $age = $request->post()['age'] ?? null;
@@ -114,7 +114,7 @@ class UserController extends Controller
             Response::error(400, 'No such user, please re-login');
         }
 
-        if (empty($email) || empty($password)) {
+        if (empty($password)) {
             Response::error(400, 'Main fields are not filled in');
         }
 

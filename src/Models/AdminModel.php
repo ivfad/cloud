@@ -11,7 +11,7 @@ class AdminModel extends Model
      */
     public function getList(): array
     {
-        $list = $this->db->query('SELECT `id`, `name`, `email`, `admin`, `age`, `gender` from `user`')->get();
+        $list = $this->db->query('SELECT * from `user`')->get();
 
         return $list;
     }
