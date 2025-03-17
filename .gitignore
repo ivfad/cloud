@@ -1,7 +1,4 @@
 .idea/
 /composer.lock
-/vendor/
-/Config/MailerConfig.php
-/Config/DbConfig.php
-/functions.php
+vendor/
 
