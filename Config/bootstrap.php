@@ -18,7 +18,7 @@ try {
     $db = App::get(Database::class);
     $config = new DbConfig();
 
-    $db->connect($config, username: 'root', password: '');
+    $db->connect($config, username: $config->getUsername(), password: $config->getPass());
     $db->query($config->init());
 } catch (ContainerExceptionInterface | Exception $e) {
     Response::error(500, $e->getMessage());

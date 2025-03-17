@@ -20,7 +20,8 @@ class View implements Renderable
     public function render(): Renderable
     {
         ob_start();
-        require_once BASE_PATH . 'src\Templates\\' . $this->template;
+        $slash = DIRECTORY_SEPARATOR;
+        require_once BASE_PATH . 'src' . $slash . 'Templates' . $slash . $this->template;
         $this->html = ob_get_contents();
         ob_end_clean();
 
