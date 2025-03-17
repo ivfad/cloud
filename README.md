@@ -55,7 +55,6 @@ composer install
 Создайте новую базу данных в MySQL и настройте подключение в файле конфигурации:
 ```bash
 Config/DbConfig.php
-=======
 ```
 Пример настроек для подключения к базе данных `cloud-storage`:
 ```bash
@@ -77,7 +76,6 @@ Config/DbConfig.php
 Выполните настройку в файле конфигурации для email-рассылки:
 ```bash
 Config/MailerConfig.php
-=======
 ```
 Пример настроек:
 ```bash
