@@ -20,12 +20,20 @@ class DbConfig
         public string $charset = 'utf8mb4')
     {
     }
-
+    
+    /**
+     * Password getter
+     * @return string
+     */
     public function getPass(): string
     {
         return $this->password;
     }
-
+    
+    /**
+     * Username getter
+     * @return string
+     */
     public function getUsername(): string
     {
         return $this->username;
