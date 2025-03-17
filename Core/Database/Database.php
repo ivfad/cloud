@@ -29,7 +29,6 @@ class Database
      * @return PDO
      */
     public function connect(DbConfig $config, string $username = 'root', string $password = ''): PDO
-//    public function connect(DbConfig $config): PDO
     {
         $dsn = 'mysql:' . http_build_query($config, arg_separator: ';');
 
