@@ -2,13 +2,11 @@
 
 namespace Core\Helpers;
 
-use Config\MailerConfig;
 use Core\App;
 use Core\Exceptions\MailerException;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Container\ContainerExceptionInterface;
-
 
 class Mailer
 {
@@ -18,7 +16,6 @@ class Mailer
      */
 
     private mixed $mailer;
-    private mixed $config;
 
     public function __construct()
     {
@@ -37,9 +34,7 @@ class Mailer
             if (!isset($this->mailer)) {
                 $this->create_mailer();
             }
-            if (!isset($this->config)) {
-                $this->add_config();
-            }
+
             $this->set_config();
             $this->set_content($content);
 
@@ -69,27 +64,9 @@ class Mailer
                 return new PHPMailer();
             });
             $this->mailer = App::get(PHPMailer::class);
-
-            return;
         } catch (ContainerExceptionInterface $e) {
             throw new MailerException("Mailer creation exception: " . $e->getMessage());
         }
-    }
-
-    /**
-     * Preloads mailer config and saves it in $config paramter.
-     * @return void
-     * @throws ContainerExceptionInterface
-     */
-    private function add_config(): void
-    {
-        require_once BASE_PATH . 'Config/MailerConfig.php';
-
-        App::bind(MailerConfig::class, function () {
-            return new MailerConfig();
-        });
-
-        $this->config = App::get(MailerConfig::class);
     }
 
     /**
@@ -101,14 +78,16 @@ class Mailer
     {
         try {
             $this->mailer->isSMTP();
-            $this->mailer->Host = $this->config->host;
+            $this->mailer->Host = getenv('MAILER_HOST');
             $this->mailer->SMTPAuth = true;
             $this->mailer->SMTPDebug = 2;
-            $this->mailer->Username = $this->config->username;
-            $this->mailer->Password = $this->config->password;
-            $this->mailer->SMTPSecure = $this->config->smtpSecure;
-            $this->mailer->Port = $this->config->port;
-            $this->mailer->setFrom($this->config->sendFromEmail, $this->config->sendFromName);
+            $this->mailer->Username = getenv('MAILER_USER');
+            $this->mailer->Password = getenv('MAILER_PASSWORD');
+            $this->mailer->SMTPSecure = getenv('MAILER_SMTP_SECURE');
+            $this->mailer->Port = getenv('MAILER_PORT');
+            echo getenv("DB_USER");
+            $this->mailer->setFrom(getenv('MAILER_SEND_FROM_EMAIL'), getenv('MAILER_SEND_FROM_NAME'));
+            echo getenv('SMTP_HOST');
         } catch (Exception $e) {
             throw new MailerException('MailerException: ' . $this->mailer->ErrorInfo);
         }

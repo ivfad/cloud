@@ -12,7 +12,8 @@ Cloud-Storage — это веб-приложение, написанное на 
     - [Шаг 3: Установка зависимостей](#Шаг-3-Установка-зависимостей)
     - [Шаг 4: Настройка базы данных](#Шаг-4-Настройка-базы-данных)
     - [Шаг 5: Настройка сервиса email-рассылки](#Шаг-5-Настройка-сервиса-email-рассылки)
-    - [Шаг 6: Запуск сервера](#Шаг-6-Запуск-сервера)
+    - [Шаг 6: Настрйока доступа](#Шаг-6-Настройка-доступа)
+    - [Шаг 7: Запуск сервера](#Шаг-7-Запуск-сервера)
 - [Документация API](#Документация-API)
 
 ---
@@ -31,7 +32,7 @@ Cloud-Storage — это веб-приложение, написанное на 
 ## Технологии
 - Язык программирования: PHP >= 8.1
 - Веб-сервер: Apache >= 2.4
-- База данных: MySQL >= 8.0 / MariaDB >= 10.4+
+- База данных: MySQL >= 8.0 / MariaDB >= 10.11
 - Архитектура: RESTFul API
 
 ## Установка
@@ -54,41 +55,47 @@ composer install
 #### Шаг 4: Настройка базы данных
 Создайте новую базу данных в MySQL и настройте подключение в файле конфигурации:
 ```bash
-Config/DbConfig.php
+Config/.env
 ```
 Пример настроек для подключения к базе данных `cloud-storage`:
 ```bash
-    private string $username = 'root';
-    private string $password = '';
-
-    public function __construct(
-        public string $host = 'localhost',
-        public int    $port = 3306,
-        public string $dbname = 'cloud-storage',
-        public string $charset = 'utf8mb4')
-    {
-    }
+  DB_HOST=localhost
+  DB_PORT=3306
+  DB_NAME=cloud-storage
+  DB_USER=admin
+  DB_PASS=admin
+  DB_CHARSET=utf8mb4
 ```
 Запустите ваш сервер базы данных.
 Необходимые таблицы в базе данных создадутся автоматически при первом запуске приложения.
 
 #### Шаг 5: Настройка сервиса email-рассылки
-Выполните настройку в файле конфигурации для email-рассылки:
+Выполните настройку конфигурации email-рассылки:
 ```bash
-Config/MailerConfig.php
+Config/.env
 ```
 Пример настроек:
 ```bash
-        public string $host = 'smtp.gmail.com',
-        public string $username = 'example-email@gmail.com', 
-        public string $password = 'examplePassword',
-        public string $smtpSecure = PHPMailer::ENCRYPTION_STARTTLS,
-        public int    $port = 587,
-        public string $sendFromEmail = 'example-email@gmail.com',
-        public string $sendFromName = 'Cloud storage',
-        public string $mailSubject = 'Link to change your password from Cloud storage')
+MAILER_HOST=smtp.gmail.com
+MAILER_PORT=587
+MAILER_USER=example-email@gmail.com
+MAILER_PASSWORD=examplePassword
+MAILER_SECURE=PHPMailer::ENCRYPTION_STARTTLS
+MAILER_SEND_FROM_EMAIL=example-email@gmail.com
+MAILER_SEND_FROM_NAME="Cloud storage"
+MAILER_SUBJECT="Link to change your password from Cloud storage"
 ```
-#### Шаг 6: Запуск сервера
+#### Шаг 6: Настройка доступа
+Для возможности работы с файлами необходимо предоставить Apache2 доступ на чтение и запись файлов в директорию /public/files.
+В Linux из директории с проектом выполните команду:
+```bash
+sudo chown -R  www-data: ./public/files
+```
+Также могут дополнительно потребоваться права пользователю на запись и чтение:
+```bash
+sudo chmod -R 755 ./public
+```
+#### Шаг 7: Запуск сервера
 Из директории с проектом запустите встроенный сервер PHP для тестирования:
 
 ```bash
@@ -99,20 +106,32 @@ php -S localhost:8000 -t public
 #### Документация API
 API предоставляет следующие endpoint'ы:
 
-| Метод  | Маршрут                  | Описание                                                                       |
-|--------|--------------------------|--------------------------------------------------------------------------------|
-| GET    | /                        | Основная страница приложения                                                   |
-| GET    | /register                | Страница регистрации нового пользователя                                       |
-| POST   | /register                | Регистрация нового пользователя                                                |
-| GET    | /users/list              | Список всех пользователей                                                      |
-| GET    | /users/get/{id}          | Информация о конкретном пользователе                                           |
-| GET    | /users/update            | Форма обновления профиля пользователя                                          |
-| PUT    | /users/update            | Обновление профиля пользователя                                                |
-| GET    | /login                   | Страница входа                                                                 |
-| POST   | /login                   | Вход в систему                                                                 |
-| GET    | /logout                  | Выход из системы                                                               |
-| GET    | /reset_password          | Отправка сообщения на почту пользователя для сброса пароля                     |
-| GET    | /admin/users/list        | Список пользователей с расширенной информацией, доступный для администратора   |
-| GET    | /admin/users/get/{id}    | Расширенная информация о конкретном пользователе, доступная для администратора |
-| PUT    | /admin/users/update/{id} | Обновление информации о конкретном пользователем, доступное для администратора |
-| DELETE | /admin/users/delete/{id} | Удаление пользователя администратором                                          |
+| Метод  | Маршрут                     | Описание                                                                       |
+|--------|-----------------------------|--------------------------------------------------------------------------------|
+| GET    | /                           | Основная страница приложения                                                   |
+| GET    | /register                   | Страница регистрации нового пользователя                                       |
+| POST   | /register                   | Регистрация нового пользователя                                                |
+| GET    | /users/list                 | Список всех пользователей                                                      |
+| GET    | /users/get/{id}             | Информация о конкретном пользователе                                           |
+| GET    | /users/update               | Форма обновления профиля пользователя                                          |
+| PUT    | /users/update               | Обновление профиля пользователя                                                |
+| GET    | /login                      | Страница входа                                                                 |
+| POST   | /login                      | Вход в систему                                                                 |
+| GET    | /logout                     | Выход из системы                                                               |
+| GET    | /reset_password             | Отправка сообщения на почту пользователя для сброса пароля                     |
+| GET    | /admin/users/list           | Список пользователей с расширенной информацией, доступный для администратора   |
+| GET    | /admin/users/get/{id}       | Расширенная информация о конкретном пользователе, доступная для администратора |
+| PUT    | /admin/users/update/{id}    | Обновление информации о конкретном пользователем, доступное для администратора |
+| DELETE | /admin/users/delete/{id}    | Удаление пользователя администратором                                          |
+| GET    | /files/list                 | Вывод списка файлов                                                            |
+| GET    | /files/get/{id}             | Скачать файл                                                                   |
+| POST   | /files/add                  | Добавить файл                                                                  |
+| PUT    | /files/rename/{id}          | Переименовать файл                                                             |
+| DELETE | /files/remove/{id}          | Удалить файл                                                                   |
+| GET    | /directories/get/{id}       | Получить список файлов папки                                                   |
+| POST   | /directories/add            | Добавить папку                                                                 |
+| PUT    | /directories/rename/{id}    | Переименовать папку                                                            |
+| DELETE | /directories/delete/{id}    | Удалить папку                                                                  |
+| GET    | /files/share/{id}           | Получить список пользователей, имеющих доступ к файлу                          |
+| PUT    | /files/share/{id}/{user_id} | Дать доступ на чтение к файлу c id пользователю с user_id                      |
+| DELETE | /files/share/{id}/{user_id} | Удалить доступ к файлу c id пользователю с user_id                             |

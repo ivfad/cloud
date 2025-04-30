@@ -7,6 +7,7 @@ use Core\Foundation\Http\Response;
 use Core\Router\Router;
 
 const BASE_PATH = __DIR__ . '/../';
+const FILES_PATH = __DIR__ . '/files/';
 
 session_start();
 

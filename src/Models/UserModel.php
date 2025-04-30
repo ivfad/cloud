@@ -2,75 +2,101 @@
 
 namespace App\Models;
 
+use Core\Exceptions\TransactionException;
 use Core\Foundation\Model;
 
 class UserModel extends Model
 {
     /**
-     * @return array
+     * @return array|false
      */
-    public function getList(): array
+    public function getUsersList(): array|false
     {
-        $list = $this->db->query('Select `name`, `age`, `gender` from `user`')->get();
-
-        return $list;
+        return $this->getList('user', ['id', 'name', 'email', 'age', 'gender']);
     }
 
     /**
      * @param $id
      * @return mixed
      */
-    public function getById($id): mixed
+    public function getUserById($id): mixed
     {
-        $info = $this->db->query('Select `name`, `age`, `gender` from `user` WHERE `id` = :id', [
-            ':id' => $id,
-        ])->find();
-
-        return $info;
+        return $this->getOneById($id, 'user', ['id', 'name', 'email', 'age', 'gender', 'admin']);
     }
 
     /**
-     * @param $name
      * @param $email
-     * @param $password
-     * @param $age
-     * @param $gender
-     * @param $initialEmail
      * @return mixed
      */
-
-    public function updateInfo($name, $email, $password, $age, $gender, $initialEmail): mixed
+    public function getUserByEmail($email): mixed
     {
-        $this->db->query(query: 'UPDATE `user` 
+        return $this->getOneBy('email', $email, 'user');
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function getUserByIdExpanded($id): mixed
+    {
+        return $this->getOneById($id, 'user');
+    }
+
+    /**
+     * @return array|false
+     */
+    public function getUsersListExpanded(): array|false
+    {
+        return $this->getList('user');
+    }
+
+    /**
+     * @param int $id
+     * @return void
+     */
+    public function deleteUserById(int $id): void
+    {
+        $this->deleteBy('id', $id, 'user');
+    }
+
+    /**
+     * @param int $id
+     * @param array $updateInfo ['name' => 'name', 'email' => 'email', 'admin' => '0|1', 'password' => 'password', 'age' => '123', 'gender' => 'M|F']
+     * @return mixed
+     */
+    public function updateById(int $id, array $updateInfo): mixed
+    {
+
+        $this->db->query(query: 'UPDATE `user`
             SET 
-                name = :name, 
-                email = :email,
-                password = :password,
-                age = :age,
-                gender = :gender 
-            WHERE email = :initialEmail',
+                `name` = :name,
+                `email` = :email,
+                `admin` = :admin,
+                `password` = :password,
+                `age` = :age,
+                `gender` = :gender
+            WHERE `id` = :id',
             params: [
-                ':initialEmail' => $initialEmail,
-                ':name' => $name,
-                ':email' => $email,
-                ':password' => password_hash($password, PASSWORD_BCRYPT),
-                ':age' => $age,
-                ':gender' => $gender
+                ':id' => $id,
+                ':name' => $updateInfo['name'],
+                ':email' => $updateInfo['email'],
+                ':admin' => $updateInfo['admin'],
+                ':age' => $updateInfo['age'],
+                ':gender' => $updateInfo['gender'],
+                ':password' => password_hash($updateInfo['password'], PASSWORD_BCRYPT)
             ]);
 
-        return $this->getByEmail($email);
+        return $this->getUserById($id);
     }
 
     /**
-     * @param $email
-     * @return mixed
+     * @param string $email
+     * @param string $password
+     * @param int $admin
+     * @return void
      */
-    public function getByEmail($email): mixed
+    public function addUser(string $email, string $password, int $admin = 0): void
     {
-        $user = $this->db->query('Select * from `user` WHERE `email` = :email', [
-            ':email' => $email,
-        ])->find();
-
-        return $user;
+        $this->insert(['email' => $email, 'password' => $password, 'admin' => $admin], 'user');
     }
 }

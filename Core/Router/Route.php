@@ -150,7 +150,6 @@ class Route
      */
     public function getUriParams(): ?array
     {
-
         return $this->uriParams;
     }
 

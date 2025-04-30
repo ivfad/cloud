@@ -29,7 +29,7 @@ class UserController extends Controller
      */
     public function list(): array
     {
-        $users = $this->model->getList();
+        $users = $this->model->getUsersList();
 
         if (empty($users)) {
             Response::error(404, 'No appropriate data found in database');
@@ -47,12 +47,14 @@ class UserController extends Controller
         $email = $request->post()['email'];
         $password = $request->post()['password'];
 
-        $user = $this->model->getByEmail($email);
+        $user = $this->model->getUserByEmail($email);
 
         if (!$user || !password_verify($password, $user['password'])) {
             Response::status(401);
             return 'There is no such user or password is incorrect';
         }
+
+        unset($_SESSION['firstUser']);
 
         $this->setSessionParams($user);
         session_regenerate_id(true);
@@ -81,8 +83,12 @@ class UserController extends Controller
     public function loginView(Request $request): Renderable
     {
         $this->view->setTemplate('login.view.php');
+        $params = [
+            'title' => 'Log into Cloud-Storage',
+            'buttonText' => 'Log in',
+        ];
 
-        return $this->view->render();
+        return $this->view->render($params);
     }
 
     /**
@@ -104,25 +110,30 @@ class UserController extends Controller
     public function update(Request $request): mixed
     {
         $initialEmail = $_SESSION['user']['email'];
-        $email = $request->post()['email'] ?? $_SESSION['user']['email'];
-        $password = $request->post()['password'] ?? null;
-        $name = $request->post()['name'] ?? null;
-        $age = $request->post()['age'] ?? null;
-        $gender = $request->post()['gender'] ?? null;
 
-        if (!$this->model->getByEmail($initialEmail)) {
+        $updateInfo = [
+            'name' => empty($request->post()['name']) ? $_SESSION['user']['name'] : $request->post()['name'],
+            'email' => empty($request->post()['email']) ? $initialEmail : $request->post()['email'],
+            'admin' => $_SESSION['user']['admin'] ?? 0,
+            'age' => empty($request->post()['age']) ? null : $request->post()['age'],
+            'gender' => $request->post()['gender'] ?? null,
+            'password' => $request->post()['password'] ?? null,
+        ];
+
+        $id = $this->model->getUserByEmail($initialEmail)['id'];
+        if (!$id) {
             Response::error(400, 'No such user, please re-login');
         }
 
-        if (empty($password)) {
+        if (empty($updateInfo['password'])) {
             Response::error(400, 'Main fields are not filled in');
         }
 
-        if ($email != $initialEmail && $this->model->getByEmail($email)) {
+        if ($updateInfo['email'] != $initialEmail && $this->model->getUserByEmail($updateInfo['email'])) {
             Response::error(422, 'Such email is already in use');
         }
 
-        $user = $this->model->updateInfo($name, $email, $password, $age, $gender, $initialEmail);
+        $user = $this->model->updateById($id, $updateInfo);
 
         $this->setSessionParams($user);
 
@@ -135,7 +146,12 @@ class UserController extends Controller
     public function updateView(): Renderable
     {
         $this->view->setTemplate('update.view.php');
-        return $this->view->render();
+        $params = [
+            'title' => 'Update your info',
+            'buttonText' => 'Update',
+        ];
+
+        return $this->view->render($params);
     }
 
     /**
@@ -151,14 +167,13 @@ class UserController extends Controller
             });
 
             $mailer = App::get(Mailer::class);
-
-            $name = isset($_SESSION['user']['name']) ?: 'User';
+            $name = empty($_SESSION['user']['name']) ? 'User' : $_SESSION['user']['name'];
 
             $content = [
                 'address' => $_SESSION['user']['email'],
                 'name' => $name,
                 'subject' => 'Link to change your password from Cloud storage',
-                'body' => "Hello, " . $name . ", here is <a href=\"#\"> a link to change your password</a>",
+                'body' => "Hello, {$name}, here is <a href=\"#\"> a link to change your password</a>",
                 'altbody' => 'Here is a link to change your password',
             ];
 
@@ -176,7 +191,7 @@ class UserController extends Controller
     public function get(Request $request, $params): mixed
     {
         $id = $params['id'];
-        $info = $this->model->getById($id);
+        $info = $this->model->getUserById($id);
 
         if (!$info) {
             Response::error('404', 'No appropriate data found in database');

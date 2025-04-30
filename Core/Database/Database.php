@@ -51,7 +51,6 @@ class Database
         try {
             $this->statement = $this->connection->prepare($query);
             $this->statement->execute($params);
-
             return $this;
         } catch (PDOException $e) {
             Response::error(500, "SQL-query error " . $e->getMessage());
@@ -60,9 +59,9 @@ class Database
 
     /**
      * Returns an array containing all the results
-     * @return array
+     * @return array|false
      */
-    public function get(): array
+    public function get(): array|false
     {
         return $this->statement->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -74,5 +73,54 @@ class Database
     public function find(): mixed
     {
         return $this->statement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Returns a single column from the result.
+     * @return mixed
+     */
+    public function column(): mixed
+    {
+        return $this->statement->fetchColumn();
+    }
+
+    /**
+     * @return int
+     */
+    public function rowCount(): int
+    {
+        return $this->statement->rowCount();
+    }
+
+    /**
+     * @return false|string
+     */
+    public function lastID(): false|string
+    {
+        return $this->connection->lastInsertId();
+    }
+
+    /**
+     * @return bool
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->connection->beginTransaction();
+    }
+
+    /**
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        return $this->connection->commit();
+    }
+
+    /**
+     * @return bool
+     */
+    public function rollback(): bool
+    {
+        return $this->connection->rollback();
     }
 }

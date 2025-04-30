@@ -14,8 +14,8 @@ class Middleware
         'guest' => Guest::class,
         'user' => User::class,
         'admin' => Admin::class,
+        'firstUser' => FirstUser::class,
     ];
-
 
     /**
      * @param $role

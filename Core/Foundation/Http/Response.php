@@ -30,10 +30,10 @@ class Response
 
     /**
      * Setter of the http-status code
-     * @param $code
+     * @param int $code
      * @return void
      */
-    public static function status($code): void
+    public static function status(int $code): void
     {
         self::$status = $code;
     }
@@ -41,10 +41,10 @@ class Response
     /**
      * Processes data depending on its content type.
      * Empty content is not processed additionally.
-     * @param $content
+     * @param mixed $content
      * @return void
      */
-    public static function setContent($content): void
+    public static function setContent(mixed $content): void
     {
         if ($content instanceof Renderable) {
             self::$content = $content->getHtml();
@@ -55,10 +55,10 @@ class Response
 
     /**
      * Json-encodes content and sets appropriate header
-     * @param $content
+     * @param mixed $content
      * @return void
      */
-    private static function json($content): void
+    private static function json(mixed $content): void
     {
         self::setHeaders('Content-Type: application/json, charset: utf-8');
         self::$content = json_encode($content);
@@ -66,10 +66,10 @@ class Response
 
     /**
      * Setter of the http-header
-     * @param $header
+     * @param string $header
      * @return void
      */
-    public static function setHeaders($header): void
+    public static function setHeaders(string $header): void
     {
         self::$headers = $header;
     }
@@ -87,7 +87,7 @@ class Response
     }
 
     /**
-     * * Sets http-status codes, sets content, sets headers and sends response.
+     * Sets http-status codes, sets content, sets headers and sends response.
      * Used for redirects
      * @param int $status
      * @param string $location
@@ -97,6 +97,31 @@ class Response
     {
         self::status($status);
         self::setHeaders($location);
+        self::send();
+    }
+
+    /**
+     *  Sets http-status codes, sets content, sets headers for delivering a file.
+     *  Used for sending files
+     * @param int $status
+     * @param string $file
+     * @param string|null $filename
+     * @return void
+     */
+    public static function sendFile(int $status = 200, string $file, string $filename = null): void
+    {
+        self::status($status);
+        $filename = $filename ?? basename($file);
+        self::setHeaders('Content-Type: application/octet-stream');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename="' . $filename  . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($file));
+
+        readfile($file);
+
         self::send();
     }
 }

@@ -4,6 +4,13 @@
     </IfModule>
 
     RewriteEngine On
+
+    RewriteCond %{QUERY_STRING} ^id=(\d+)&user_id=(\d+)$
+    RewriteRule ^files/share/?$ files/share/%1/%2? [R=301,L]
+
+    RewriteCond %{QUERY_STRING} ^id=(\d+)$
+    RewriteRule ^(admin/)?users/get/$ /$1users/get/%1? [R=301,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>

@@ -7,7 +7,6 @@ use Core\Helpers\Renderable;
 class View implements Renderable
 {
     private string $template = '';
-    private array $data = [];
     private string $html = '';
 
     public function __construct()
@@ -15,10 +14,12 @@ class View implements Renderable
     }
 
     /** Loads and executes the specified template and saves the result in $html variable
+     * @param array $params
      * @return Renderable
      */
-    public function render(): Renderable
+    public function render(array $params = []): Renderable
     {
+        extract($params);
         ob_start();
         $slash = DIRECTORY_SEPARATOR;
         require_once BASE_PATH . 'src' . $slash . 'Templates' . $slash . $this->template;

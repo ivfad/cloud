@@ -72,7 +72,6 @@ class Router
                 throw new RouteNotFoundException('Route does not exist');
             }
             $this->checkAccess($currentRoute);
-
             $action = $currentRoute->getAction();
             $callableAction = ActionFactory::create($action);
 
@@ -103,6 +102,7 @@ class Router
      * Example#2: current URI - /example/12 compared to saved route - /example/{id}/{name}, with two variable parameters {id} and {name}. Result - null.
      * @param string $uri
      * @param string $method
+     * @param $params
      * @return Route|null
      */
     private function findRoute(string $uri, string $method, $params): ?Route

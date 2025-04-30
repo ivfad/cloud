@@ -20,16 +20,9 @@ class HomeController extends Controller
     public function index(): Renderable
     {
         $this->view->setTemplate('index.view.php');
-
-        return $this->view->render();
-    }
-    /**
-     * @return Renderable
-     */
-    public function index2(): Renderable
-    {
-        $this->view->setTemplate('index2.view.php');
-
-        return $this->view->render();
+        $params = [
+            'title' => 'Cloud-Storage',
+        ];
+        return $this->view->render($params);
     }
 }
