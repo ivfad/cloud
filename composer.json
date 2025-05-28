@@ -20,6 +20,7 @@
       "ext-pdo": "*",
         "psr/container": "^2.0",
       "ext-ctype": "*",
-        "phpmailer/phpmailer": "^6.9"
+        "phpmailer/phpmailer": "^6.9",
+        "predis/predis": "^3.0"
     }
 }
