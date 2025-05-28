@@ -2,6 +2,7 @@
 
 use Config\DbConfig;
 use Core\App;
+use Core\Cache\RedisService;
 use Core\Container\Container;
 use Core\Database\Database;
 use Core\Foundation\Http\Response;
@@ -15,12 +16,14 @@ try {
 
     setEnv(BASE_PATH . 'Config/.env');
     require_once BASE_PATH . 'Config/DbConfig.php';
-
     $db = App::get(Database::class);
     $config = new DbConfig(host: getenv("DB_HOST"), port: getenv("DB_PORT"), dbname: getenv("DB_NAME"), charset: getenv("DB_CHARSET"));
 
+    App::singleton(RedisService::class, RedisService::getInstance());
+
     $db->connect($config, username: getenv("DB_USER"), password: getenv("DB_PASS"));
     $db->query($config->init());
+
 } catch (ContainerExceptionInterface | Exception $e) {
     Response::error(500, $e->getMessage());
 }

@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+use Core\App;
+use Core\Cache\RedisService;
 use Core\Exceptions\TransactionException;
 use Core\Foundation\Model;
 
 class FileModel extends Model
 {
-    private array $cache = [];
+    private RedisService $redis;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->redis = App::get(RedisService::class);
+    }
 
     /**
      * @param string $filename
@@ -254,6 +262,8 @@ class FileModel extends Model
      */
     public function removeFolder(int $id): array
     {
+        $this->invalidateAssociatedCache($id);
+
         try {
             if (!$this->beginTransaction()) {
                 throw new TransactionException('DB transaction start failed');
@@ -313,55 +323,61 @@ class FileModel extends Model
                 ':name' => $name,
             ]);
 
+        $this->invalidateAssociatedCache($id);
+
         return $this->getFolderByID($id, ['id', 'name']);
     }
 
     /**
-     * @param $folderID
+     * @param int $folderID
      * @return string
      */
-    public function getFullPath($folderID): string
+    public function getFullPath(int $folderID): string
     {
-        if (isset($this->cache[$folderID])) {
-            return $this->cache[$folderID];
+        if ($this->getCachedPath($folderID)) {
+            return $this->getCachedPath($folderID);
         }
 
         $sql = "
             WITH RECURSIVE folder_path AS (
-                SELECT id, name, parent_id, name AS path
+                SELECT id, name, parent_id
                 FROM folder
                 WHERE id = :folder_id
     
                 UNION ALL
     
-                SELECT f.id, f.name, f.parent_id, CONCAT(f.name, '/', fp.path) AS path
+                SELECT f.id, f.name, f.parent_id
                 FROM folder f
-                JOIN folder_path fp ON fp.parent_id = f.id
+                JOIN folder_path fp ON f.id = fp.parent_id
             )
-            SELECT CONCAT('/', path) AS full_path
+            SELECT GROUP_CONCAT(name ORDER BY parent_id IS NULL DESC SEPARATOR '/') AS full_path
             FROM folder_path
-            WHERE parent_id IS NULL
         ";
 
         $path = $this->db->query($sql, params: [':folder_id' => $folderID])->find();
 
-        $fullPath = $path ? $path['full_path'] : '/';
-        $this->cache[$folderID] = $fullPath;
+        $fullPath = $path ? '/' . $path['full_path'] : '/';
+
+        $this->setCachedPath($folderID, $fullPath);
 
         return $fullPath;
     }
 
-    public function collectFoldersList($folderID): array|false
+    /**
+     * @param int $folderID
+     * @return array|false
+     */
+    public function collectFoldersList(int $folderID): array|false
     {
         return $this->getBy('parent_id', $folderID, 'folder');
     }
 
     /**
      * DFS-algorithm implementation. Recursively collects a list of all files in current and all child folders
-     * @param $folderID
+     * @param int $folderID
      * @return array
      */
-    public function collectAllFiles($folderID): array
+    public function collectAllFiles(int $folderID): array
     {
         $allFiles = [];
 
@@ -381,5 +397,48 @@ class FileModel extends Model
         $dfs($folderID);
 
         return $allFiles;
+    }
+
+    /**
+     * @param int $folderID
+     * @return string|null
+     */
+    private function getCachedPath(int $folderID): ?string
+    {
+        $cacheKey = "path:folder:$folderID";
+
+        return $this->redis->get($cacheKey);
+    }
+
+    /**
+     * @param int $folderID
+     * @param string $path
+     * @return void
+     */
+    private function setCachedPath(int $folderID, string $path): void
+    {
+        $cacheKey = "path:folder:$folderID";
+        $this->redis->setEx($cacheKey, 600, $path);
+    }
+
+    /**
+     * @param int $folderID
+     * @return void
+     */
+    private function invalidateAssociatedCache(int $folderID): void
+    {
+        $queue = [$folderID];
+
+        while (!empty($queue)) {
+            $currentFolderID = array_shift($queue);
+
+            $cacheKey = "path:folder:$currentFolderID";
+            $this->redis->delete($cacheKey);
+
+            $childFolders = $this->collectFoldersList($currentFolderID);
+            foreach ($childFolders as $childFolder) {
+                $queue[] = $childFolder['id'];
+            }
+        }
     }
 }
